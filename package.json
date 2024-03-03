@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "This is the backend of E-Learning Platform",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atul-8115/LearnSphere-Backend.git"
+  },
+  "author": "Atul Kumar Pandey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Atul-8115/LearnSphere-Backend/issues"
+  },
+  "homepage": "https://github.com/Atul-8115/LearnSphere-Backend#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

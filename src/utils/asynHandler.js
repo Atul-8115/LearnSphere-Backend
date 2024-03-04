@@ -4,3 +4,5 @@ const asycnHandler = (requestHandler) => {
         catch((err) => next(err))
     }
 }
+
+export { asycnHandler }

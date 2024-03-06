@@ -23,10 +23,18 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
+        confirmPassword: {
+            type: String,
+            required: true,
+        },
         accountType: {
             type: String,
             enum: ["Admin", "Student", "Instructor"],
             required: true
+        },
+        contactNumber: {
+            type: Number,
+            required: true,
         },
         additionalDetails: {
             type: Schema.Types.ObjectId,

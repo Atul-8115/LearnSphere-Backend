@@ -9,6 +9,8 @@ import { Profile } from "../models/Profile.model.js"
 // Libraries
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
+import { jwt } from "jsonwebtoken";
+import { cookies } from "cookie-parser"
 
 
 const sendOTP = asycnHandler(async (req,res) => {
@@ -136,7 +138,48 @@ const signUp = asycnHandler(async (req,res) => {
 
 })
 
+const login = asycnHandler(async (req,res) => {
+    try {
+        const {email, password} = req.body
+
+        if(!email || !password) {
+            throw new ApiErrors(400,"Email and Password both are required")
+        }
+
+        const user = await User.find({email})
+        if(!user) {
+            throw new ApiErrors(401,"User does not exist please SignUp")
+        }
+
+        if(await bcrypt.compare(password,user.password)) {
+            const payload = {
+                email: user.email,
+                id: user._id,
+                accountType: user.accountType
+            }
+            const token = jwt.sign(payload,process.env.JWT_SECRET,{
+                expiiresIn: "2h"
+            })
+            user.token = token
+            user.password = null
+            const options = {
+                expiiresIn: new Date(Date.now + 3*24*60*60*1000),
+                httpOnly: true
+            }
+
+            res.cookies("token",token,options)
+               .status(new ApiResponse(200,token,user,"Logged in successfully"))
+        } else {
+            throw new ApiErrors(400,"incorrect password")
+        }
+    } catch (error) {
+        console.log("ERROR: ", error.message);
+        throw new ApiErrors(501,"Failed while login, Please try later")
+    }
+})
+
 export {
     sendOTP,
-    signUp
+    signUp,
+    login
 }

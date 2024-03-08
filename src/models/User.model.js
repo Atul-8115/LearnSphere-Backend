@@ -57,8 +57,11 @@ const userSchema = new Schema(
                 ref: "CourseProgress",
             }
         ],
-        refreshToken: {
+        token: {
             type: String
+        },
+        resetPasswordExpires: {
+            type: Date
         }
     },
     {timestamps: true}

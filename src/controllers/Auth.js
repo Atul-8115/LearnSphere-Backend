@@ -10,7 +10,6 @@ import { Profile } from "../models/Profile.model.js"
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
 import { jwt } from "jsonwebtoken";
-import { cookies } from "cookie-parser"
 
 
 const sendOTP = asycnHandler(async (req,res) => {
@@ -176,6 +175,10 @@ const login = asycnHandler(async (req,res) => {
         console.log("ERROR: ", error.message);
         throw new ApiErrors(501,"Failed while login, Please try later")
     }
+})
+
+const changePassword = asycnHandler(async (req,res) => {
+    
 })
 
 export {

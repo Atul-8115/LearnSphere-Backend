@@ -3,7 +3,7 @@ import { asycnHandler } from "../utils/asynHandler.js"
 import { ApiErrors } from "../utils/ApiErrors.js"
 
 
-const auth = asycnHandler(async (req,res,next) => {
+const auth = asycnHandler(async (req,_,next) => {
     try {
         const token = req.cookies.token 
                       || req.body.token
@@ -27,7 +27,7 @@ const auth = asycnHandler(async (req,res,next) => {
     }
 })
 
-const isStudent = asycnHandler(async (req,res,next) => {
+const isStudent = asycnHandler(async (req,_,next) => {
     try {
         if(req.user.accountType !== "Student") {
             throw new ApiErrors(401,"This is a protected route for Student only")
@@ -38,7 +38,7 @@ const isStudent = asycnHandler(async (req,res,next) => {
         throw new ApiErrors(500,"Something went wrong while verifying Student")
     }
 })
-const isInstructor = asycnHandler(async (req,res,next) => {
+const isInstructor = asycnHandler(async (req,_,next) => {
     try {
         if(req.user.accountType !== "Instructor") {
             throw new ApiErrors(401,"This is a protected route for Instructor only")
@@ -50,7 +50,7 @@ const isInstructor = asycnHandler(async (req,res,next) => {
     }
 })
 
-const isAdmin = asycnHandler(async (req,res,next) => {
+const isAdmin = asycnHandler(async (req,_,next) => {
     try {
         if(req.user.accountType !== "Admin") {
             throw new ApiErrors(401,"This is a protected route for Admin only")

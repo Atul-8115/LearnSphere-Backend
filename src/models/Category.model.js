@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose";
 
-const tagsSchema = new Schema({
+const categorySchema = new Schema({
     name: {
         type: String,
         required: true
@@ -15,4 +15,4 @@ const tagsSchema = new Schema({
 
 });
 
-export const Tag = mongoose.model("Tag", tagsSchema);
+export const Category = mongoose.model("Category", categorySchema);

@@ -1,17 +1,17 @@
 import { User } from "../models/User.model.js";
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { asycnHandler } from "../utils/asynHandler.js";
-import { Tag } from "../models/Tags.model.js"
+import { Category } from "../models/Category.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Course } from "../models/Course.model.js"
 import { ApiResponse } from "../utils/AppResponse.js";
 
 const createCourse = asycnHandler(async (req,res) => {
     try {
-        const {courseName, courseDescription, whatYouWillLearn, price,tag} = req.body
+        const {courseName, courseDescription, whatYouWillLearn, price,category, tags} = req.body
         const thumbnail = req.files?.thumbnailImage
 
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !tag || !thumbnail) {
+        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !thumbnail ||!tags) {
             throw new ApiErrors(400,"All fiels are required. ")
         }
 
@@ -23,8 +23,8 @@ const createCourse = asycnHandler(async (req,res) => {
             throw new ApiErrors(404,"Instructor Details not found")
         }
 
-        const tagDetails = await Tag.findById(tag)
-        if(!tagDetails) {
+        const categoryDetails = await Category.findById(category)
+        if(!categoryDetails) {
             throw new ApiErrors(400,"Tag details not found")
         }
 
@@ -40,7 +40,8 @@ const createCourse = asycnHandler(async (req,res) => {
                     whatYouWillLearn,
                     price,
                     thumbnail: thumbnailImage.secure_url,
-                    tag: tagDetails._id
+                    category: categoryDetails._id,
+                    tag:tags // Yaha pe galti ho sakti hai
                 },
                 {
                     new: true,
@@ -59,8 +60,8 @@ const createCourse = asycnHandler(async (req,res) => {
             }
         )
 
-        await Tag.findByIdAndUpdate(
-            {_id:tagDetails._id},
+        await Category.findByIdAndUpdate(
+            {_id:categoryDetails._id},
             {
                 $push: {
                     courses: newCourseDetails._id

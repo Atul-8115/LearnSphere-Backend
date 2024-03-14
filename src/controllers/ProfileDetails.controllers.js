@@ -55,4 +55,5 @@ const deleteAccount = asycnHandler(async (req,res) => {
 
 export {
     updateProfileDetails,
+    deleteAccount
 }

@@ -103,7 +103,47 @@ const getAllCourses = asycnHandler(async (req,res) => {
 
 // TODO: Write a handler function for accessing course detail on the basis of courseId
 
+const getCourseDetails = asycnHandler(async (req,res) => {
+    try {
+        const {courseId} = req.body;
+
+        const courseDetails = await Course.findOne({_id:courseId})
+                                           .populate({
+                                            path: "instructor",
+                                                populate:{
+                                                    path:"additionalDetails",
+                                                }
+                                              }
+                                           )
+                                           .populate("category")
+                                           .populate("ratingAndReviews")
+                                           .populate({
+                                            path: "courseContent",
+                                            populate: {
+                                                path: "subSection",
+                                            }
+                                           })
+                                           .exec()
+        
+        if(!courseDetails) {
+            throw new ApiErrors(404,`Could not find course with ${courseId}`)
+        }
+
+        return res
+               .status(200)
+               .json(new ApiResponse(
+                     200,
+                     courseDetails,
+                     "Course content fetched successfully."
+               ))
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while fetching course details, please try again later.")
+    }
+})
+
 export {
     createCourse,
-    getAllCourses
+    getAllCourses,
+    getCourseDetails
 }

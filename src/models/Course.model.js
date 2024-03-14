@@ -38,12 +38,10 @@ const courseSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: "Category"
         },
-        tag: [
-            {
-                type: String,
-                required: true
-           }
-        ],
+        tag:{
+            type: [String],
+            required: true
+        },
         studentsEnrolled: [
             {
                 type: Schema.Types.ObjectId,

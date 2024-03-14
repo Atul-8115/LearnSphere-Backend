@@ -101,6 +101,8 @@ const getAllCourses = asycnHandler(async (req,res) => {
     }
 })
 
+// TODO: Write a handler function for accessing course detail on the basis of courseId
+
 export {
     createCourse,
     getAllCourses

@@ -8,8 +8,8 @@ const createCategory = asycnHandler(async (req,res) => {
     try {
         const {name, description} = req.body
 
-        if(!name || !description) {
-            throw new ApiErrors(400,"Tag name and description are required.")
+        if(!name) {
+            throw new ApiErrors(400,"Tag name is required.")
         }
 
         const categoryDetails = await Category.create({
@@ -40,23 +40,38 @@ const getAllCategory = asycnHandler(async (req,res) => {
     }
 })
 
-const getCourseByCategory = asycnHandler(async (req,res) => {
+const categoryPageDetails = asycnHandler(async (req,res) => {
     try {
-          const {courseId} = req.body
+          const {categoryId} = req.body
 
-          const getAllCourses = await Course.findById({courseId})
+          const selectedCategory = await Category.findById({categoryId})
                                                                 .populate("courses")
                                                                 .exec();
-          if(!getAllCourses) {
+          if(!selectedCategory) {
               throw new ApiErrors(404,"Courses not found with the given category.")
           }
 
-         const getDifferentCategories = await Course.find({_id:courseId},{$ne:{courseId}});
+          if(selectedCategory.courses.length === 0) {
+            throw new ApiErrors(404,"No courses found for the selected category.")
+          }
 
+          const selectedCourses = selectedCategory.courses
+
+         const categoriesExceptSelected = await Category.find({_id: {$ne: categoryId}}).populate("courses");
+
+         let differentCourses = []
+         for(const category of categoriesExceptSelected) {
+            differentCourses.push(...category.courses)
+         }
+
+        //  Fetch top 10 most selling courses
+        const allCategory = await Category.find().populate('courses').exec();
+        const allCourses = allCategory.flatMap((category) => category.courses)
+        const mostSellingCourses = allCourses.sort((a,b) => b.sold - a.sold).slice(0,10)
 
          return res
                 .status(200)
-                .json(new ApiResponse(200,getAllCourses,getDifferentCategories,"Desired data fetched successfully."))
+                .json(new ApiResponse(200,selectedCourses,differentCourses,mostSellingCourses,"Desired data fetched successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while fetching data.")
@@ -66,5 +81,5 @@ const getCourseByCategory = asycnHandler(async (req,res) => {
 export {
     createCategory,
     getAllCategory,
-    getCourseByCategory
+    categoryPageDetails
 }

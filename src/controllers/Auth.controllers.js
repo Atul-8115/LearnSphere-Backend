@@ -27,13 +27,13 @@ const sendOTP = asycnHandler(async (req,res) => {
             throw new ApiErrors(401,"User already present")
         }
     
-        let otp = otpGenerator.generate(6,{
+        var otp = otpGenerator.generate(6,{
             lowerCaseAlphabets: false,
             upperCaseAlphabets: false,
             specialChars: false
         })
     
-        var result = await OTP.findOne({otp:otp})
+        const result = await OTP.findOne({otp:otp})
     
         while(result) {
             otp = otpGenerator.generate(6,{

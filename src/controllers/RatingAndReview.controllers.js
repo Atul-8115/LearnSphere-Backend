@@ -103,4 +103,6 @@ const getAllRatingAndReviews = asycnHandler(async (req,res) => {
 
 export {
     createRatingAndReview,
+    getAverageRating,
+    getAllRatingAndReviews
 }

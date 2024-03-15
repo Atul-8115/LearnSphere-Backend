@@ -2,6 +2,7 @@ import { Category } from "../models/Category.model.js";
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import { asycnHandler } from "../utils/asynHandler.js";
+import { Course } from "../models/Course.model.js"
 
 const createCategory = asycnHandler(async (req,res) => {
     try {
@@ -39,7 +40,31 @@ const getAllCategory = asycnHandler(async (req,res) => {
     }
 })
 
+const getCourseByCategory = asycnHandler(async (req,res) => {
+    try {
+          const {courseId} = req.body
+
+          const getAllCourses = await Course.findById({courseId})
+                                                                .populate("courses")
+                                                                .exec();
+          if(!getAllCourses) {
+              throw new ApiErrors(404,"Courses not found with the given category.")
+          }
+
+         const getDifferentCategories = await Course.find({_id:courseId},{$ne:{courseId}});
+
+
+         return res
+                .status(200)
+                .json(new ApiResponse(200,getAllCourses,getDifferentCategories,"Desired data fetched successfully."))
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while fetching data.")
+    }
+})
+
 export {
     createCategory,
-    getAllCategory
+    getAllCategory,
+    getCourseByCategory
 }

@@ -10,6 +10,7 @@ import { Profile } from "../models/Profile.model.js"
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
 import { jwt } from "jsonwebtoken";
+import { mailSender } from "../utils/mailSender.js";
 
 
 const sendOTP = asycnHandler(async (req,res) => {
@@ -178,11 +179,57 @@ const login = asycnHandler(async (req,res) => {
 })
 
 const changePassword = asycnHandler(async (req,res) => {
-    
+    try {
+        const userId = req.user.id 
+        const userDetails = User.findById({userId})
+        const {oldPassword,newPassword,confirmPassword} = req.body
+
+        if(!oldPassword || !newPassword || !confirmPassword) {
+            throw new ApiErrors(400,"All fields are required, please fill all the required field.")
+        }
+
+        const matchedPassord = await bcrypt.compare(oldPassword,userDetails.password)
+        if(!matchedPassord) {
+            throw new ApiErrors(400,"Old password is incorrect.")
+        }
+
+        if(newPassword !== confirmPassword) {
+            throw new ApiErrors(400,"Password not matched.")
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword,10);
+        const updatedUserDetails = await User.findByIdAndUpdate({userId}, {
+                                                                password:hashedPassword
+                                                            },{new:true})
+
+        // Send verification mail
+        // Isko Samjhna hai sahi se
+        try {
+            const emailResponse =  mailSender(
+                updatedUserDetails.email,
+                passwordUpdated(
+                    updatedUserDetails.email,
+                    `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
+                )
+            );
+            console.log("Email sent successfully: ",emailResponse);
+        } catch (error) {
+            console.log("ERROR: ",error)
+            throw new ApiErrors(500,"Something went wrong while sending email")
+        }
+
+        return res
+               .status(200)
+               .json(new ApiResponse(200,"Password changed successfully."))
+    } catch (error) {
+        console.log("ERROR: ",error)
+        throw new ApiErrors(500,error.message,"Something went wrong while changing the password please try later.")
+    }
 })
 
 export {
     sendOTP,
     signUp,
-    login
+    login,
+    changePassword
 }

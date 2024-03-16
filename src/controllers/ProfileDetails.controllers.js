@@ -37,11 +37,19 @@ const updateProfileDetails = asycnHandler(async (req,res) => {
 
 const deleteAccount = asycnHandler(async (req,res) => {
     try {
+
+        // TODO: Find More on Job Schedule
+		// const job = schedule.scheduleJob("10 * * * * *", function () {
+		// 	console.log("The answer to life, the universe, and everything!");
+		// });
+		// console.log(job);
         const userId = req.user.id
 
         const userDetails = await User.findById(userId)
 
         await Profile.findByIdAndDelete({_id:userDetails.additionalDetails._id})
+        // TODO: Unenroll User From All the Enrolled Courses
+		// Now Delete User
         await User.findByIdAndDelete({_id:userId})
 
         return res
@@ -53,7 +61,26 @@ const deleteAccount = asycnHandler(async (req,res) => {
     }
 })
 
+const getAllUserDetails = asycnHandler(async(req,res) => {
+    try {
+        const userId = req.user._id
+        const userDetails = await User.findById(userId)
+                                                       .populate("additionalDetails")
+                                                       .exec();
+
+        return res
+               .status(200)
+               .json(new ApiResponse(200,userDetails,"User details fetched successfully."))
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while fetching user details.")
+    }
+})
+
+//TODO: updateDisplayPicture
+
 export {
     updateProfileDetails,
-    deleteAccount
+    deleteAccount,
+    getAllUserDetails
 }

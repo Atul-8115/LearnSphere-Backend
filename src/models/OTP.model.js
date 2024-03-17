@@ -1,6 +1,7 @@
 import mongoose, {Schema} from "mongoose"
-import { mailSender } from "../utils/mailSender"
-import { ApiErrors } from "../utils/ApiErrors";
+import { mailSender } from "../utils/mailSender.js"
+import { ApiErrors } from "../utils/ApiErrors.js";
+import {otpTemplate} from "../mail/templates/emailVerification.js"
 
 const OTPSchema = new Schema({
     email: {
@@ -14,13 +15,14 @@ const OTPSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now(),
-        expires: 5*60,
+        expires: 20*60*60*1000,
     }
 })
 
 async function sendVerificationEmail(email, otp) {
     try {
-        const mailResponse =  mailSender(email, "Verification Email from LearnSphere", otp)
+        const mailResponse = await mailSender(email, "Verification Email from LearnSphere", otpTemplate(otp))
+        // const some = otpTemplate(otp)
         console.log("Email sent Successfully: ", mailResponse);
     } catch (error) {
         throw new ApiErrors(500,error, "Error occurred while sending mail")

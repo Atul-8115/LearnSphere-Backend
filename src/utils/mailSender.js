@@ -2,7 +2,7 @@ import nodemailer from "nodemailer"
 import { asycnHandler } from "./asynHandler.js"
 import { ApiErrors } from "./ApiErrors.js"
 
-const mailSender = asycnHandler( async (email, title, body) => {
+const mailSender = async (email, title, body) => {
     try {
         let transporter = nodemailer.createTransport({
             host: process.env.MAIL_HOST,
@@ -19,12 +19,12 @@ const mailSender = asycnHandler( async (email, title, body) => {
             html: `${body}`,
         })
 
-        console.log(info)
+        console.log("I'm here in mailsender: ",info)
         return info
     } catch (error) {
         console.log(error.message);
         throw new ApiErrors(500, "Something went wrong")
     }
-})
+}
 
 export {mailSender}

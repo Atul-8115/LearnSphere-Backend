@@ -79,4 +79,4 @@ router.post("/createRating", auth, isStudent, createRatingAndReview)
 router.get("/getAverageRating", getAverageRating)
 router.get("/getReviews", getAllRatingAndReviews)
 
-module.exports = router
+export default router

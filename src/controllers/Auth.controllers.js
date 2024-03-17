@@ -9,8 +9,9 @@ import { Profile } from "../models/Profile.model.js"
 // Libraries
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
-import { jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { mailSender } from "../utils/mailSender.js";
+import { json } from "express";
 
 
 const sendOTP = asycnHandler(async (req,res) => {
@@ -21,9 +22,10 @@ const sendOTP = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"Please provide email")
         }
     
-        const userExist = await User.findOne(email)
-    
-        if(!userExist) {
+        const userExist = await User.findOne({email})
+
+        console.log("userExists: ",userExist)
+        if(userExist) {
             throw new ApiErrors(401,"User already present")
         }
     
@@ -47,7 +49,7 @@ const sendOTP = asycnHandler(async (req,res) => {
         const otpPayload = {email,otp}
     
         const otpBody = await OTP.create(otpPayload)
-        console.log(otpBody)
+        console.log("otpBody: ",otpBody)
     
         if(!otpBody) {
             throw new ApiErrors(500,"Failed to generate otp")
@@ -73,12 +75,12 @@ const signUp = asycnHandler(async (req,res) => {
             password,
             confirmPassword,
             accountType,
-            contactNumber,
+            contactNumber = 0,
             otp,
         }              = req.body
     
         // Validate all the details
-        if(!firstName || !lastName || !email || !password || !confirmPassword || !contactNumber || !otp) {
+        if(!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
             throw new ApiErrors(400,"Please fill all the required fields")
         }
     
@@ -89,16 +91,18 @@ const signUp = asycnHandler(async (req,res) => {
     
         // Check if user already exists or not
         const userExisted = await User.find({email})
-        if(userExisted) {
+        console.log("userExisted: ",userExisted)
+        if(userExisted.length > 0) {
             throw new ApiErrors(402,"User already present please login")
         }
     
         // Find most recent otp saved in db
+        console.log("Printing otp ",otp);
         const recentOtp = await OTP.find({email}).sort({createdAt:-1}).limit(1)
-        console.log("Printing recent OTP: ",recentOtp);
+        console.log("Printing recent OTP: ",recentOtp[0].otp);
         if(recentOtp.length === 0) {
             throw new ApiErrors(401,"OTP not found")
-        } else if(otp !== recentOtp.otp) {
+        } else if(otp !== recentOtp[0].otp) {
             throw new ApiErrors(401,"OTP not matched")
         }
     
@@ -132,7 +136,7 @@ const signUp = asycnHandler(async (req,res) => {
                .status(200)
                .json(new ApiResponse(200,user,"User registered successfully"))
     } catch (error) {
-        console.log("ERROR While Signing Up: ",error.message);
+        console.log("ERROR MESSAGE: ",error.message);
         throw new ApiErrors(500,"Something went wrong while Signing Up")
     }
 
@@ -146,29 +150,36 @@ const login = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"Email and Password both are required")
         }
 
-        const user = await User.find({email})
+        console.log("Printing email and password: ",email," ",password);
+        const user = await User.find({email}).populate("additionalDetails")
         if(!user) {
             throw new ApiErrors(401,"User does not exist please SignUp")
         }
 
-        if(await bcrypt.compare(password,user.password)) {
+        console.log("Printing user: ",user[0].password);
+        // console.log("Printing user.password: ",user.password);
+        if(await bcrypt.compare(password,user[0].password)) {
             const payload = {
                 email: user.email,
                 id: user._id,
                 accountType: user.accountType
             }
             const token = jwt.sign(payload,process.env.JWT_SECRET,{
-                expiiresIn: "2h"
+                expiresIn: "24h"
             })
             user.token = token
+            console.log("Token: ",token);
             user.password = null
             const options = {
-                expiiresIn: new Date(Date.now + 3*24*60*60*1000),
-                httpOnly: true
-            }
+				expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+				httpOnly: true,
+			};
 
-            res.cookies("token",token,options)
-               .status(new ApiResponse(200,token,user,"Logged in successfully"))
+            console.log("Printing options: ",options);
+            return res
+                  .cookie("token",token,options)
+                  .status(200)
+                  .json(new ApiResponse(200,token,user,"Logged in successfully"))
         } else {
             throw new ApiErrors(400,"incorrect password")
         }

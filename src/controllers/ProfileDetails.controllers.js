@@ -2,7 +2,7 @@ import { ApiErrors } from "../utils/ApiErrors.js";
 import { asycnHandler } from "../utils/asynHandler.js";
 import { User } from "../models/User.model.js"
 import { Profile } from "../models/Profile.model.js";
-import { ApiResponse } from "../utils/AppResponse";
+import { ApiResponse } from "../utils/AppResponse.js";
 
 
 const updateProfileDetails = asycnHandler(async (req,res) => {

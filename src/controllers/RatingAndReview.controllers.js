@@ -1,6 +1,7 @@
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { asycnHandler } from "../utils/asynHandler.js";
-import {Course, RatingAndReview} from "../models/RatingAndReview.model.js"
+import {RatingAndReview} from "../models/RatingAndReview.model.js"
+import { Course } from "../models/Course.model.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import mongoose from "mongoose";
 import { json } from "express";

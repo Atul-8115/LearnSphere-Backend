@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/AppResponse.js";
 import { asycnHandler } from "../utils/asynHandler.js";
 import { mailSender } from "../utils/mailSender.js";
 import bcrypt from "bcrypt"
+import crypto from "crypto"
 
 
 const resetPasswordToken = asycnHandler(async (req,res) => {
@@ -23,7 +24,7 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
                  },
                  {
                     token: token,
-                    resetPasswordExpires: Date.now + 5*60*1000
+                    resetPasswordExpires: Date.now() + 5*60*1000
                  },
                  {
                     new: true
@@ -31,8 +32,9 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
             )
 
         const url = `http://localhost:3000/update-password/${token}`
-        mailSender(email,"Password reset link",`Password reset link: ${url}`)
+        const mailSent = await mailSender(email,"Password reset link",`Password reset link: ${url}`)
 
+        // console.log("mail Sent ",mailSent);
         return res
                .status(200)
                .json(new ApiResponse(200,"Mail sent successfully, please check mail and change passwrod."))

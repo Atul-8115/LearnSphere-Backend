@@ -1,9 +1,9 @@
 import nodemailer from "nodemailer"
-import { asycnHandler } from "./asynHandler.js"
 import { ApiErrors } from "./ApiErrors.js"
 
 const mailSender = async (email, title, body) => {
     try {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         let transporter = nodemailer.createTransport({
             host: process.env.MAIL_HOST,
             auth: {
@@ -12,6 +12,7 @@ const mailSender = async (email, title, body) => {
             }
         })
 
+        // console.log("transporter ",transporter);
         let info = await transporter.sendMail({
             from: "LearnSphere - by Atul Pandey",
             to: `${email}`,
@@ -19,7 +20,7 @@ const mailSender = async (email, title, body) => {
             html: `${body}`,
         })
 
-        console.log("I'm here in mailsender: ",info)
+        // console.log("I'm here in mailsender: ",info)
         return info
     } catch (error) {
         console.log(error.message);

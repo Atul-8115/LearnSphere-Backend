@@ -3,6 +3,7 @@ import
 { 
     deleteAccount, 
     getAllUserDetails, 
+    updateDisplayPicture, 
     updateProfileDetails 
 } from "../controllers/ProfileDetails.controllers.js"
 
@@ -16,12 +17,12 @@ const router = Router()
 // ********************************************************************************************************
 
 // Delet User Account
-router.delete("/deleteProfile", deleteAccount)
+router.delete("/deleteProfile", auth ,deleteAccount)
 router.put("/updateProfile", auth, updateProfileDetails)
 router.get("/getUserDetails", auth, getAllUserDetails)
 // Get Enrolled Courses
 
 // router.get("/getEnrolledCourses", auth, getEnrolledCourses)
-// router.put("/updateDisplayPicture", auth, updateDisplayPicture)
+router.route("/updateDisplayPicture").put(auth, updateDisplayPicture)
 
 export default router

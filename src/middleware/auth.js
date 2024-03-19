@@ -1,30 +1,36 @@
 import jwt from "jsonwebtoken"
 import { asycnHandler } from "../utils/asynHandler.js"
 import { ApiErrors } from "../utils/ApiErrors.js"
+import { User } from "../models/User.model.js"
 
 
 const auth = asycnHandler(async (req,_,next) => {
-    try {
-        const token = req.cookies.token 
-                      || req.body.token
-                      || req.header("Authorisation").replace("Bearer "," ")
-        
-        if(!token) {
-            throw new ApiErrors(401,"Token is missing")
-        }
-
         try {
-            const decode = jwt.verify(token,process.env.JWT_SECRET)
-            console.log(decode)
-            req.user = decode
+            const token = req.cookies?.accessToken 
+                          || req.body?.accessToken
+                          || req.header("Authorisation")?.replace("Bearer ","")
+            
+            if(!token) {
+                throw new ApiErrors(401,"Token is missing")
+            }
+    
+            // console.log("Token -> ",token," ",process.env.JWT_SECRET);
+    
+            const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+            // console.log("decode -> id",decode._id," ",decode)
+            const user = await User.findById(decodedToken._id)
+                                   .select("-password -confirmPassword -refreshToken");
+    
+            if(!user) {
+                    throw new ApiErrors(401,"Invalid Access Token")
+            }
+            req.user = user
+            console.log("I'm here in auth's controller: ",req.user);
+            next() 
         } catch (error) {
-            throw new ApiErrors(401,"token is invalid")
+            console.log("ERROR MESSAGE: ",error.message)
+            throw new ApiErrors(401, error?.message || "Invalid access token")
         }
-        next()
-    } catch (error) {
-        console.log("ERROR MESSAGE: ",error.message);
-        throw new ApiErrors(501,"Something went wrong while verifying token")
-    }
 })
 
 const isStudent = asycnHandler(async (req,_,next) => {

@@ -9,10 +9,27 @@ import { Profile } from "../models/Profile.model.js"
 // Libraries
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken";
 import { mailSender } from "../utils/mailSender.js";
-import { json } from "express";
 
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+
+        const accessToken = user.generateAccessToken()
+ 
+        const refreshToken = user.generateRefreshToken()
+  
+        // Saving in the database
+        User.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken,refreshToken}
+
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500, "Something went wrong while generating referesh and access token")
+    }
+}
 
 const sendOTP = asycnHandler(async (req,res) => {
     try {
@@ -144,48 +161,50 @@ const signUp = asycnHandler(async (req,res) => {
 
 const login = asycnHandler(async (req,res) => {
     try {
-        const {email, password} = req.body
-
+        const { email, password } = req.body
+    
         if(!email || !password) {
-            throw new ApiErrors(400,"Email and Password both are required")
+            throw new ApiErrors(400,"All fields are required.")
         }
+    
+        const user = await User.findOne({email})
 
-        console.log("Printing email and password: ",email," ",password);
-        const user = await User.find({email}).populate("additionalDetails")
+        // console.log("User -> ",user);
         if(!user) {
-            throw new ApiErrors(401,"User does not exist please SignUp")
+            throw new ApiErrors(404,"User is not registered")
         }
-
-        console.log("Printing user: ",user[0].password);
-        // console.log("Printing user.password: ",user.password);
-        if(await bcrypt.compare(password,user[0].password)) {
-            const payload = {
-                email: user.email,
-                id: user._id,
-                accountType: user.accountType
-            }
-            const token = jwt.sign(payload,process.env.JWT_SECRET,{
-                expiresIn: "24h"
-            })
-            user.token = token
-            console.log("Token: ",token);
-            user.password = null
-            const options = {
-				expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-				httpOnly: true,
-			};
-
-            console.log("Printing options: ",options);
-            return res
-                  .cookie("token",token,options)
-                  .status(200)
-                  .json(new ApiResponse(200,token,user,"Logged in successfully"))
-        } else {
-            throw new ApiErrors(400,"incorrect password")
+    
+        const isPasswordValid = await user.isPassowrdCorrect(password)
+    
+        if(!isPasswordValid) {
+            throw new ApiErrors(401,"Invalid Password")
         }
+    
+        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
+    
+        const loggedInUser = await User.findById(user._id).select("-password -refreshToken -confirmPassword")
+    
+        const options = {
+            httpOnly: true,
+            secure: false,
+        }
+    
+        return res
+               .status(200)
+               .cookie("accessToken",accessToken,options)
+               .cookie("refreshToken", refreshToken,options)
+               .json(
+                   new ApiResponse(
+                      200,
+                      {
+                         user: loggedInUser, accessToken, refreshToken
+                      },
+                      "User logged in successfully"
+                   )
+               )
     } catch (error) {
-        console.log("ERROR: ", error.message);
-        throw new ApiErrors(501,"Failed while login, Please try later")
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while loging in.")
     }
 })
 
@@ -202,6 +221,10 @@ const changePassword = asycnHandler(async (req,res) => {
         const matchedPassord = await bcrypt.compare(oldPassword,userDetails.password)
         if(!matchedPassord) {
             throw new ApiErrors(400,"Old password is incorrect.")
+        }
+
+        if(oldPassword === newPassword) {
+            throw new ApiErrors(400,"New password should not be same as old password.")
         }
 
         if(newPassword !== confirmPassword) {

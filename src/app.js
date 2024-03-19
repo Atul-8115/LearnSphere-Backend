@@ -1,4 +1,5 @@
 import express from "express";
+import { cloudinaryConnect } from "./config/cloudinary.js"
 const app = express()
 
 // Userful libraries
@@ -18,6 +19,16 @@ app.use(
         credentials: true,
     })
 )
+
+app.use(
+	fileUpload({
+		useTempFiles:true,
+		tempFileDir:"/tmp",
+	})
+)
+
+// cloudinary connection
+cloudinaryConnect();
 
 // import routes
 import userRoutes from "./routes/User.router.js"

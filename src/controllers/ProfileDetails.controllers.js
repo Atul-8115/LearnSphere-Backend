@@ -3,13 +3,14 @@ import { asycnHandler } from "../utils/asynHandler.js";
 import { User } from "../models/User.model.js"
 import { Profile } from "../models/Profile.model.js";
 import { ApiResponse } from "../utils/AppResponse.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 const updateProfileDetails = asycnHandler(async (req,res) => {
     try {
         const {gender,dateOfBirth="",about="",contactNumber} = req.body
-        const userId = req.user.id
-        if(!gender || !contactNumber || !userId) {
+        const userId = req.user._id
+        if(!gender || !contactNumber) {
             throw new ApiErrors(400,"Please fill all the required details.")
         }
         const userDetails = await User.findById(userId)
@@ -23,7 +24,7 @@ const updateProfileDetails = asycnHandler(async (req,res) => {
 
         await profileDetails.save()
 
-        return req
+        return res
                .status(200)
                .json(new ApiResponse(200,profileDetails,"Profile updated successfully."))
     } catch (error) {
@@ -65,6 +66,7 @@ const getAllUserDetails = asycnHandler(async(req,res) => {
     try {
         const userId = req.user._id
         const userDetails = await User.findById(userId)
+                                                       .select('-password -refreshToken -confirmPassword')
                                                        .populate("additionalDetails")
                                                        .exec();
 
@@ -78,9 +80,39 @@ const getAllUserDetails = asycnHandler(async(req,res) => {
 })
 
 //TODO: updateDisplayPicture
+const updateDisplayPicture = asycnHandler(async (req,res) => {
+    try {
+        const profilePic = req.files?.displayPicture;
+        console.log("req.files -> ",req.files," "," req.file -> ",req.file);
+        console.log(`Profile picture is ${profilePic}`,profilePic);
+        if(!profilePic) {
+            throw new ApiErrors(400,"Please upload profile pic.")
+        }
+
+        const userId = req.user._id
+        console.log(`Existing user's id is: ${userId} `);
+        const uploadedPic = await uploadOnCloudinary(profilePic)
+        if(!uploadedPic) {
+            throw new ApiErrors(500,"Something went wrong while updating profile pic.")
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+                                         {_id:userId},
+                                         {image:uploadedPic.secure_url},
+                                         {new:true})
+
+        return res
+               .status(200)
+               .json(new ApiResponse(200,updatedUser,"User's display picture updated successfully."))                                 
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while updating display picture.")
+    }
+})
 
 export {
     updateProfileDetails,
     deleteAccount,
-    getAllUserDetails
+    getAllUserDetails,
+    updateDisplayPicture
 }

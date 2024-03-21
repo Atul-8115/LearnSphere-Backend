@@ -14,7 +14,7 @@ const OTPSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
+        // default: Date.now(),
         expires: 20*60*60*1000,
     }
 })

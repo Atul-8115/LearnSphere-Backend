@@ -14,16 +14,14 @@ const createSection = asycnHandler(async (req,res) => {
 
         const newSection = await Section.create({
             sectionName:sectionName
-        },
-        {
-            new: true,
         })
-        const updatedCourseDetails = await Course.findByIdAndDelete({courseId},
+        const updatedCourseDetails = await Course.findByIdAndDelete(courseId,
             {
                 $push: {
                     courseContent: newSection._id
                 }
-            })
+            },
+            {new : true})
             .populate(
                 {
                     path:'courseContent',

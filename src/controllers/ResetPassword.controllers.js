@@ -71,7 +71,8 @@ const resetPassword = asycnHandler(async (req,res) => {
                 token:token
             },
             {
-                password: hashedPassword
+                password: hashedPassword,
+                confirmPassword: hashedPassword
             },
             {
                 new: true

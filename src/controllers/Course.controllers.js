@@ -8,15 +8,21 @@ import { ApiResponse } from "../utils/AppResponse.js";
 
 const createCourse = asycnHandler(async (req,res) => {
     try {
-        const {courseName, courseDescription, whatYouWillLearn, price,category, tags} = req.body
-        const thumbnail = req.files?.thumbnailImage
-
+        let {courseName, courseDescription, whatYouWillLearn, price,category, tags,status,
+			instructions,} = req.body
+        const thumbnail = req.files?.thumbnail
+        if(!status || status === undefined) {
+            status = "Draft"
+        }
+        console.log("thumbnail-> ",thumbnail);
         if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !thumbnail ||!tags) {
             throw new ApiErrors(400,"All fiels are required. ")
         }
 
         const instructorId = req.user._id
-        const instructorDetails = await User.findById(instructorId)
+        const instructorDetails = await User.findById(instructorId, {
+			accountType: "Instructor",
+		});
         console.log(instructorDetails)
 
         if(!instructorDetails) {
@@ -24,30 +30,32 @@ const createCourse = asycnHandler(async (req,res) => {
         }
 
         const categoryDetails = await Category.findById(category)
+        console.log("CategoryDetails -> ",categoryDetails)
         if(!categoryDetails) {
-            throw new ApiErrors(400,"Tag details not found")
+            throw new ApiErrors(400,"Category details not found")
         }
 
         const thumbnailImage = await uploadOnCloudinary(thumbnail)
+        console.log("thumbnailImage: ",thumbnailImage);
         if(!thumbnailImage) {
             throw new ApiErrors(500,"Unable to upload thumbnail")
         }
-
+        console.log("Id of instructor ",instructorDetails.id);
         const newCourseDetails = await Course.create({
                     courseName,
                     courseDescription,
-                    instructor: instructorDetails._id,
-                    whatYouWillLearn,
+                    instructor: instructorDetails.id,
+                    whatYouWillLearn: whatYouWillLearn,
                     price,
                     thumbnail: thumbnailImage.secure_url,
                     category: categoryDetails._id,
-                    tag:tags // Yaha pe galti ho sakti hai
+                    tag:tags, // Yaha pe galti ho sakti hai
+                    instructions,
+                    status
                 },
-                {
-                    new: true,
-                }
             )
         // Add new course to user schema
+        // console.log("New Course Details -> ",newCourseDetails);
         await User.findByIdAndUpdate(
             {_id: instructorDetails._id},
             {
@@ -60,6 +68,7 @@ const createCourse = asycnHandler(async (req,res) => {
             }
         )
 
+        console.log("Updated Instructor Details -> ",updatedInstructor)
         await Category.findByIdAndUpdate(
             {_id:categoryDetails._id},
             {
@@ -69,7 +78,7 @@ const createCourse = asycnHandler(async (req,res) => {
             },
             {new: true}
         )
-
+        // console.log("Updated Category -> ",updatedCategory);
         return res
                .status(200)
                .json(new ApiResponse(200,newCourseDetails,"Course created successfully. "))
@@ -107,7 +116,7 @@ const getCourseDetails = asycnHandler(async (req,res) => {
     try {
         const {courseId} = req.body;
 
-        const courseDetails = await Course.findOne({_id:courseId})
+        const courseDetails = await Course.find({_id:courseId})
                                            .populate({
                                             path: "instructor",
                                                 populate:{

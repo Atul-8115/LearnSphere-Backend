@@ -61,7 +61,7 @@ router.post("/addSubSection", auth, isInstructor, createSubSection)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
-router.post("/getCourseDetails", getCourseDetails)
+router.get("/getCourseDetails", getCourseDetails)
 
 // ********************************************************************************************************
 //                                      Category routes (Only by Admin)

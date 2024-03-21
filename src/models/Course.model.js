@@ -10,8 +10,8 @@ const courseSchema = new Schema(
         },
         instructor: {
             type: Schema.Types.ObjectId,
+            // required: true,
             ref: "User",
-            required: true,
         },
         whatYouWillLearn: {
             type: String
@@ -48,7 +48,14 @@ const courseSchema = new Schema(
                 ref: "User",
                 required: true
             }
-        ]
+        ],
+        instructions: {
+            type: [String],
+        },
+        status: {
+            type: String,
+            enum: ["Draft", "Published"],
+        }
     },
     {timestamps:true}
 )

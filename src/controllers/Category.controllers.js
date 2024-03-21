@@ -21,10 +21,10 @@ const createCategory = asycnHandler(async (req,res) => {
 
         return res
                .status(200)
-               .json(new ApiResponse(200,categoryDetails,"Tag created successfully."))
+               .json(new ApiResponse(200,categoryDetails,"Category created successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
-        throw new ApiResponse(500,"Something went wrong while creating tag. ")
+        throw new ApiResponse(500,"Something went wrong while creating category. ")
     }
 })
 

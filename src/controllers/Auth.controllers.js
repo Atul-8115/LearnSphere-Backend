@@ -46,14 +46,16 @@ const sendOTP = asycnHandler(async (req,res) => {
             throw new ApiErrors(401,"User already present")
         }
     
-        var otp = otpGenerator.generate(6,{
+        let otp = otpGenerator.generate(6,{
             lowerCaseAlphabets: false,
             upperCaseAlphabets: false,
             specialChars: false
         })
-    
+
+        console.log("Generated otp -> ",otp);
         const result = await OTP.findOne({otp:otp})
-    
+
+        console.log("Checking if otp already present or not ",result);
         while(result) {
             otp = otpGenerator.generate(6,{
                 lowerCaseAlphabets: false,
@@ -173,9 +175,12 @@ const login = asycnHandler(async (req,res) => {
         if(!user) {
             throw new ApiErrors(404,"User is not registered")
         }
-    
-        const isPasswordValid = await user.isPassowrdCorrect(password)
-    
+
+        console.log("Password -> ",password);
+        const isPasswordValid = await bcrypt.compare(password,user.confirmPassword)
+        // const isPasswordValid = await user.isPassowrdCorrect(password)
+
+        console.log("Is Password valid -> ",isPasswordValid);
         if(!isPasswordValid) {
             throw new ApiErrors(401,"Invalid Password")
         }

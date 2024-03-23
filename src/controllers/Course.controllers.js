@@ -9,7 +9,7 @@ import { ApiResponse } from "../utils/AppResponse.js";
 const createCourse = asycnHandler(async (req,res) => {
     try {
         let {courseName, courseDescription, whatYouWillLearn, price,category, tags,status,
-			instructions,} = req.body
+			instructions} = req.body
         const thumbnail = req.files?.thumbnail
         if(!status || status === undefined) {
             status = "Draft"
@@ -68,7 +68,7 @@ const createCourse = asycnHandler(async (req,res) => {
             }
         )
 
-        console.log("Updated Instructor Details -> ",updatedInstructor)
+        // console.log("Updated Instructor Details -> ",updatedInstructor)
         await Category.findByIdAndUpdate(
             {_id:categoryDetails._id},
             {

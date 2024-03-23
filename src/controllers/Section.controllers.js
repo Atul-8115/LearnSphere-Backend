@@ -15,7 +15,7 @@ const createSection = asycnHandler(async (req,res) => {
         const newSection = await Section.create({
             sectionName:sectionName
         })
-        const updatedCourseDetails = await Course.findByIdAndDelete(courseId,
+        const updatedCourseDetails = await Course.findByIdAndUpdate(courseId,
             {
                 $push: {
                     courseContent: newSection._id
@@ -34,7 +34,7 @@ const createSection = asycnHandler(async (req,res) => {
         
         return res
                .status(200)
-               .json(new ApiResponse(200,updatedCourseDetails,"Section created successfully."))
+               .json(new ApiResponse(200,newSection,"Section created successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while creating new section please try again. ")

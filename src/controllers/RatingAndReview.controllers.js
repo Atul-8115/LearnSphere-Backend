@@ -4,8 +4,6 @@ import {RatingAndReview} from "../models/RatingAndReview.model.js"
 import { Course } from "../models/Course.model.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import mongoose from "mongoose";
-import { json } from "express";
-
 // TODO: Create Rating and Review controller
 const createRatingAndReview = asycnHandler(async (req,res) => {
     try {

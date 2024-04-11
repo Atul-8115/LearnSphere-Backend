@@ -69,11 +69,21 @@ const userSchema = new Schema(
     },
     {timestamps: true}
 )
+async function sendVerificationEmail(email, otp) {
+    try {
+        const mailResponse = await mailSender(email, "Verification Email from LearnSphere", otpTemplate(otp))
+        // const some = otpTemplate(otp)
+        console.log("Email sent Successfully: ", mailResponse);
+    } catch (error) {
+        throw new ApiErrors(500,error, "Error occurred while sending mail")
+    }
+}
 
 userSchema.pre("save", async function (next) {
     if(!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password,10)
+    await sendVerificationEmail(this.email, this.otp)
     console.log("Printing this.password -> ",this.password)
     next();
 })

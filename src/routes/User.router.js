@@ -9,12 +9,11 @@ const router = Router();
 // ********************************************************************************************************
 //                                      Authentication routes
 // ********************************************************************************************************
+router.post("/sendotp",sendOTP)
 
 router.post("/login",login)
 
 router.post("/signup",signUp)
-
-router.post("/sendotp",sendOTP)
 
 router.post("/changepassword",changePassword)
 

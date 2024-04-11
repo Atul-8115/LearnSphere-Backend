@@ -177,9 +177,6 @@ const login = asycnHandler(async (req,res) => {
         }
 
         console.log("Password -> ",password);
-        const isPasswordValid = await bcrypt.compare(password,user.confirmPassword)
-        // const isPasswordValid = await user.isPassowrdCorrect(password)
-
         console.log("Is Password valid -> ",isPasswordValid);
         if(!isPasswordValid) {
             throw new ApiErrors(401,"Invalid Password")

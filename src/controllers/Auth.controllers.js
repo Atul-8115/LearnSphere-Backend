@@ -41,7 +41,7 @@ const sendOTP = asycnHandler(async (req,res) => {
     
         const userExist = await User.findOne({email})
 
-        console.log("userExists: ",userExist)
+        // console.log("userExists: ",userExist)
         if(userExist) {
             throw new ApiErrors(401,"User already present")
         }
@@ -52,10 +52,10 @@ const sendOTP = asycnHandler(async (req,res) => {
             specialChars: false
         })
 
-        console.log("Generated otp -> ",otp);
+        // console.log("Generated otp -> ",otp);
         const result = await OTP.findOne({otp:otp})
 
-        console.log("Checking if otp already present or not ",result);
+        // console.log("Checking if otp already present or not ",result);
         while(result) {
             otp = otpGenerator.generate(6,{
                 lowerCaseAlphabets: false,

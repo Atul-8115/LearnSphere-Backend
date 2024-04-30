@@ -97,7 +97,8 @@ const signUp = asycnHandler(async (req,res) => {
             contactNumber = 0,
             otp,
         }              = req.body
-    
+
+        console.log("Printing all the fields -> ",firstName,lastName,email,accountType);
         // Validate all the details
         if(!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
             throw new ApiErrors(400,"Please fill all the required fields")

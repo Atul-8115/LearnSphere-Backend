@@ -34,12 +34,12 @@ const userSchema = new Schema(
         },
         contactNumber: {
             type: Number,
-            required: true,
+            // required: true,
         },
         additionalDetails: {
             type: Schema.Types.ObjectId,
             ref: "Profile",
-            required : true
+            // required : true
         },
         courses: [
             {
@@ -49,7 +49,7 @@ const userSchema = new Schema(
         ],
         image: {
             type: String,
-            required: true
+            // required: true
         }, 
         courseProgress: [
             {

@@ -98,7 +98,7 @@ const signUp = asycnHandler(async (req,res) => {
             otp,
         }              = req.body
 
-        console.log("Printing all the fields -> ",firstName,lastName,email,accountType);
+        // console.log("Printing all the fields -> ",firstName,lastName,email,accountType);
         // Validate all the details
         if(!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
             throw new ApiErrors(400,"Please fill all the required fields")
@@ -111,15 +111,16 @@ const signUp = asycnHandler(async (req,res) => {
     
         // Check if user already exists or not
         const userExisted = await User.find({email})
-        console.log("userExisted: ",userExisted)
+
+        // console.log("userExisted: ",userExisted)
         if(userExisted.length > 0) {
             throw new ApiErrors(402,"User already present please login")
         }
-    
+
         // Find most recent otp saved in db
-        console.log("Printing otp ",otp);
+        // console.log("Printing otp ",otp);
         const recentOtp = await OTP.find({email}).sort({createdAt:-1}).limit(1)
-        console.log("Printing recent OTP: ",recentOtp[0].otp);
+        // console.log("Printing recent OTP: ",recentOtp[0].otp);
         if(recentOtp.length === 0) {
             throw new ApiErrors(401,"OTP not found")
         } else if(otp !== recentOtp[0].otp) {
@@ -136,6 +137,7 @@ const signUp = asycnHandler(async (req,res) => {
             about: null,
             contactNumber
         })
+
         const user = await User.create({
             firstName,
             lastName,
@@ -156,7 +158,7 @@ const signUp = asycnHandler(async (req,res) => {
                .status(200)
                .json(new ApiResponse(200,user,"User registered successfully"))
     } catch (error) {
-        console.log("ERROR MESSAGE: ",error.message);
+        console.log("ERROR MESSAGE: ",error);
         throw new ApiErrors(500,"Something went wrong while Signing Up")
     }
 
@@ -172,12 +174,13 @@ const login = asycnHandler(async (req,res) => {
     
         const user = await User.findOne({email})
 
-        // console.log("User -> ",user);
+        console.log("User -> ",user);
         if(!user) {
             throw new ApiErrors(404,"User is not registered")
         }
 
         console.log("Password -> ",password);
+        const isPasswordValid = await user.isPassowrdCorrect(password)
         console.log("Is Password valid -> ",isPasswordValid);
         if(!isPasswordValid) {
             throw new ApiErrors(401,"Invalid Password")

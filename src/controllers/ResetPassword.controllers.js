@@ -31,7 +31,7 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
                  }
             )
 
-        const url = `http://localhost:3000/update-password/${token}`
+        const url = `http://localhost:5173/update-password/${token}`
         const mailSent = await mailSender(email,"Password reset link",`Password reset link: ${url}`)
 
         // console.log("mail Sent ",mailSent);

@@ -47,6 +47,7 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
 const resetPassword = asycnHandler(async (req,res) => {
     try {
         const {password, confirmPassword, token} = req.body
+        console.log("Password -> ", password," ","ConfirmPassword -> ",confirmPassword, " Token-> ", token)
         if(!password || !confirmPassword || !token) {
             throw new ApiErrors(400,"Please fill all the required fields.")
         }

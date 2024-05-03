@@ -84,7 +84,6 @@ const sendOTP = asycnHandler(async (req,res) => {
 })
 
 const signUp = asycnHandler(async (req,res) => {
-
     try {
         //Fetch all the details
         const {
@@ -97,26 +96,21 @@ const signUp = asycnHandler(async (req,res) => {
             contactNumber = 0,
             otp,
         }              = req.body
-
         // console.log("Printing all the fields -> ",firstName,lastName,email,accountType);
         // Validate all the details
         if(!firstName || !lastName || !email || !password || !confirmPassword || !otp) {
             throw new ApiErrors(400,"Please fill all the required fields")
         }
-    
         // Match the passwords
         if(password !== confirmPassword) {
             throw new ApiErrors(401,"Password do not matched")
         }
-    
         // Check if user already exists or not
         const userExisted = await User.find({email})
-
         // console.log("userExisted: ",userExisted)
         if(userExisted.length > 0) {
             throw new ApiErrors(402,"User already present please login")
         }
-
         // Find most recent otp saved in db
         // console.log("Printing otp ",otp);
         const recentOtp = await OTP.find({email}).sort({createdAt:-1}).limit(1)
@@ -126,10 +120,8 @@ const signUp = asycnHandler(async (req,res) => {
         } else if(otp !== recentOtp[0].otp) {
             throw new ApiErrors(401,"OTP not matched")
         }
-    
         // Hash the password
         const hashedPassword = await bcrypt.hash(password,10)
-    
         // Create entry in db
         const additionalDetails = await Profile.create({
             gender: null,
@@ -137,7 +129,6 @@ const signUp = asycnHandler(async (req,res) => {
             about: null,
             contactNumber
         })
-
         const user = await User.create({
             firstName,
             lastName,
@@ -149,7 +140,6 @@ const signUp = asycnHandler(async (req,res) => {
             additionalDetails: additionalDetails._id,
             image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
         })
-    
         if(!user) {
             throw new ApiErrors(500,"Error Occurred while registering")
         }
@@ -167,34 +157,26 @@ const signUp = asycnHandler(async (req,res) => {
 const login = asycnHandler(async (req,res) => {
     try {
         const { email, password } = req.body
-    
         if(!email || !password) {
             throw new ApiErrors(400,"All fields are required.")
         }
-    
         const user = await User.findOne({email})
-
         console.log("User -> ",user);
         if(!user) {
             throw new ApiErrors(404,"User is not registered")
         }
-
         console.log("Password -> ",password);
         const isPasswordValid = await user.isPassowrdCorrect(password)
         console.log("Is Password valid -> ",isPasswordValid);
         if(!isPasswordValid) {
             throw new ApiErrors(401,"Invalid Password")
         }
-    
         const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
-    
         const loggedInUser = await User.findById(user._id).select("-password -refreshToken -confirmPassword")
-    
         const options = {
             httpOnly: true,
             secure: false,
         }
-    
         return res
                .status(200)
                .cookie("accessToken",accessToken,options)

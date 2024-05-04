@@ -35,11 +35,12 @@ import userRoutes from "./routes/User.router.js"
 import profileRoutes from "./routes/Profile.router.js"
 import paymentRoutes from "./routes/Payment.router.js"
 import courseRoutes from "./routes/Course.router.js"
-
+import contactRoutes from "./routes/Contact.router.js"
 // routes
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/contact",contactRoutes)
 
 export { app }

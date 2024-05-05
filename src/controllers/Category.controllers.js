@@ -30,7 +30,7 @@ const createCategory = asycnHandler(async (req,res) => {
 
 const getAllCategory = asycnHandler(async (req,res) => {
     try {
-        const allCategory = await Category.find({},{name: true, description: true})
+        const allCategory = await Category.find({})
         return res
                .status(200)
                .json(new ApiResponse(200,allCategory,"Fetched all the tags successfully."))

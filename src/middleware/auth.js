@@ -6,20 +6,20 @@ import { User } from "../models/User.model.js"
 
 const auth = asycnHandler(async (req,_,next) => {
         try {
-            const token = req.cookies?.accessToken 
-                          || req.body?.accessToken
+            const token = req.cookies?.refreshToken 
+                          || req.body?.refreshToken
                           || req.header("Authorisation")?.replace("Bearer ","")
             
             if(!token) {
                 throw new ApiErrors(401,"Token is missing")
             }
     
-            // console.log("Token -> ",token," ",process.env.JWT_SECRET);
+            console.log("Token -> ",token," ",process.env.JWT_SECRET);
     
-            const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+            const decodedToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
             // console.log("decode -> id",decode._id," ",decode)
             const user = await User.findById(decodedToken._id)
-                                   .select("-password -confirmPassword -refreshToken");
+                                   .select("-password -confirmPassword");
     
             if(!user) {
                     throw new ApiErrors(401,"Invalid Access Token")

@@ -22,11 +22,14 @@ const updateProfileDetails = asycnHandler(async (req,res) => {
         profileDetails.about = about
         profileDetails.contactNumber = contactNumber
 
-        await profileDetails.save()
 
+        await profileDetails.save()
+        const finalUserDetails = await User.findById(userId).populate("additionalDetails")
+        // const finalUserDetails = userDetails.populate("addtionalDetails")
+        // console.log("Printing user details -> ",finalUserDetails)
         return res
                .status(200)
-               .json(new ApiResponse(200,profileDetails,"Profile updated successfully."))
+               .json(new ApiResponse(200,finalUserDetails,"Profile updated successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ", error.message)
         throw new ApiErrors(500,"Something went wrong while updating profile details")

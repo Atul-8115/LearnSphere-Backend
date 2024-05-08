@@ -14,7 +14,7 @@ const auth = asycnHandler(async (req,_,next) => {
                 throw new ApiErrors(401,"Token is missing")
             }
     
-            console.log("Token -> ",token," ",process.env.JWT_SECRET);
+            // console.log("Token -> ",token," ",process.env.JWT_SECRET);
     
             const decodedToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
             // console.log("decode -> id",decode._id," ",decode)
@@ -25,7 +25,7 @@ const auth = asycnHandler(async (req,_,next) => {
                     throw new ApiErrors(401,"Invalid Access Token")
             }
             req.user = user
-            console.log("I'm here in auth's controller: ",req.user);
+            // console.log("I'm here in auth's controller: ",req.user);
             next() 
         } catch (error) {
             console.log("ERROR MESSAGE: ",error.message)

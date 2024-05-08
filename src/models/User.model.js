@@ -50,7 +50,7 @@ const userSchema = new Schema(
         ],
         image: {
             type: String,
-            // required: true
+            required: true
         }, 
         courseProgress: [
             {

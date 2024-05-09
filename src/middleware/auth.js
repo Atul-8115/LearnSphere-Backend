@@ -18,9 +18,8 @@ const auth = asycnHandler(async (req,_,next) => {
     
             const decodedToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
             // console.log("decode -> id",decode._id," ",decode)
-            const user = await User.findById(decodedToken._id)
-                                   .select("-password -confirmPassword");
-    
+            const user = await User.findById(decodedToken._id);
+            console.log("Printing user -> ", user)
             if(!user) {
                     throw new ApiErrors(401,"Invalid Access Token")
             }

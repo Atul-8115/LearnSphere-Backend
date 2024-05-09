@@ -2,6 +2,7 @@
 import { ApiErrors } from "../utils/ApiErrors.js";
 import { asycnHandler } from "../utils/asynHandler.js"
 import { ApiResponse } from "../utils/AppResponse.js";
+import { passwordUpdated } from "../mail/templates/passwordUpdate.js"
 // Models
 import { User } from "../models/User.model.js"
 import { OTP } from "../models/OTP.model.js";
@@ -9,6 +10,8 @@ import { Profile } from "../models/Profile.model.js"
 // Libraries
 import otpGenerator from "otp-generator"
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
+
 import { mailSender } from "../utils/mailSender.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -198,15 +201,25 @@ const login = asycnHandler(async (req,res) => {
 
 const changePassword = asycnHandler(async (req,res) => {
     try {
-        const userId = req.user.id 
-        const userDetails = User.findById({userId})
-        const {oldPassword,newPassword,confirmPassword} = req.body
 
-        if(!oldPassword || !newPassword || !confirmPassword) {
+        const token = req.cookies?.refreshToken 
+                          || req.body?.refreshToken
+                          || req.header("Authorisation")?.replace("Bearer ","")
+
+        const decodedToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
+        const user = await User.findById(decodedToken._id)
+        const {oldPassword,newPassword} = req.body
+        const userId = req.user._id
+
+        if(!oldPassword || !newPassword) {
             throw new ApiErrors(400,"All fields are required, please fill all the required field.")
         }
 
-        const matchedPassord = await bcrypt.compare(oldPassword,userDetails.password)
+        
+        // const matchedPassord = true
+        console.log("Printing confirmPassword -> ",user.confirmPassword)
+        const matchedPassord = await user.isPassowrdCorrect(oldPassword);
+        // console.log("Printing hashedPassword -> ",matchedPassord)
         if(!matchedPassord) {
             throw new ApiErrors(400,"Old password is incorrect.")
         }
@@ -215,17 +228,16 @@ const changePassword = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"New password should not be same as old password.")
         }
 
-        if(newPassword !== confirmPassword) {
-            throw new ApiErrors(400,"Password not matched.")
-        }
-
+        
         const hashedPassword = await bcrypt.hash(newPassword,10);
-        const updatedUserDetails = await User.findByIdAndUpdate({userId}, {
-                                                                password:hashedPassword
+        const updatedUserDetails = await User.findByIdAndUpdate(userId, {
+                                                                password:hashedPassword,
+                                                                confirmPassword: hashedPassword
                                                             },{new:true})
-
+        console.log("Printing updated user details -> ",updatedUserDetails)
         // Send verification mail
         // Isko Samjhna hai sahi se
+        // passwordUpdated
         try {
             const emailResponse =  mailSender(
                 updatedUserDetails.email,

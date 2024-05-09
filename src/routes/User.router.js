@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { changePassword, login, sendOTP, signUp } from "../controllers/Auth.controllers.js";
 import { resetPassword, resetPasswordToken } from "../controllers/ResetPassword.controllers.js";
-
+import { auth } from "../middleware/auth.js";
 const router = Router();
 
 // Routes for Login, Signup, and Authentication
@@ -15,7 +15,7 @@ router.post("/login",login)
 
 router.post("/signup",signUp)
 
-router.post("/changepassword",changePassword)
+router.post("/changepassword",auth,changePassword)
 
 // ********************************************************************************************************
 //                                      Reset Password

@@ -8,14 +8,22 @@ import { ApiResponse } from "../utils/AppResponse.js";
 
 const createCourse = asycnHandler(async (req,res) => {
     try {
-        let {courseName, courseDescription, whatYouWillLearn, price,category, tags,status,
+        let {courseName, courseDescription, whatYouWillLearn, price,category, tag,status,
 			instructions} = req.body
-        const thumbnail = req.files?.thumbnail
+
+        console.log("Printing body data ",courseName)
+        console.log("Printing body data ",courseDescription)
+        console.log("Printing body data ",whatYouWillLearn)
+        console.log("Printing body data ",price)
+        console.log("Printing body data ",category)
+        console.log("Printing body data ",tag)
+        console.log("Printing body data ",status)
+        // const thumbnail = req.file?.thumbnail
         if(!status || status === undefined) {
             status = "Draft"
         }
-        console.log("thumbnail-> ",thumbnail);
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !thumbnail ||!tags) {
+        // console.log("thumbnail-> ",thumbnail);
+        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !tag) {
             throw new ApiErrors(400,"All fiels are required. ")
         }
 
@@ -35,11 +43,11 @@ const createCourse = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"Category details not found")
         }
 
-        const thumbnailImage = await uploadOnCloudinary(thumbnail)
-        console.log("thumbnailImage: ",thumbnailImage);
-        if(!thumbnailImage) {
-            throw new ApiErrors(500,"Unable to upload thumbnail")
-        }
+        // const thumbnailImage = await uploadOnCloudinary(thumbnail)
+        // console.log("thumbnailImage: ",thumbnailImage);
+        // if(!thumbnailImage) {
+        //     throw new ApiErrors(500,"Unable to upload thumbnail")
+        // }
         console.log("Id of instructor ",instructorDetails.id);
         const newCourseDetails = await Course.create({
                     courseName,
@@ -47,9 +55,9 @@ const createCourse = asycnHandler(async (req,res) => {
                     instructor: instructorDetails.id,
                     whatYouWillLearn: whatYouWillLearn,
                     price,
-                    thumbnail: thumbnailImage.secure_url,
+                    // thumbnail: thumbnailImage.secure_url,
                     category: categoryDetails._id,
-                    tag:tags, // Yaha pe galti ho sakti hai
+                    tag:tag, // Yaha pe galti ho sakti hai
                     instructions,
                     status
                 },

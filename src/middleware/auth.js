@@ -10,6 +10,7 @@ const auth = asycnHandler(async (req,_,next) => {
                           || req.body?.refreshToken
                           || req.header("Authorisation")?.replace("Bearer ","")
             
+            console.log("Here I'm checking token -> ",token)
             if(!token) {
                 throw new ApiErrors(401,"Token is missing")
             }

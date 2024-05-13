@@ -11,6 +11,9 @@ const createCourse = asycnHandler(async (req,res) => {
         let {courseName, courseDescription, whatYouWillLearn, price,category, tag,status,
 			instructions} = req.body
 
+        const thumbnail = req.files?.thumbnailImage
+        console.log("Printing thumnail -> ",thumbnail)
+        console.log("Printing req.body -> ",req.body)
         console.log("Printing body data ",courseName)
         console.log("Printing body data ",courseDescription)
         console.log("Printing body data ",whatYouWillLearn)
@@ -18,6 +21,8 @@ const createCourse = asycnHandler(async (req,res) => {
         console.log("Printing body data ",category)
         console.log("Printing body data ",tag)
         console.log("Printing body data ",status)
+        console.log("Printing body data ",thumbnail)
+
         // const thumbnail = req.file?.thumbnail
         if(!status || status === undefined) {
             status = "Draft"
@@ -43,11 +48,11 @@ const createCourse = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"Category details not found")
         }
 
-        // const thumbnailImage = await uploadOnCloudinary(thumbnail)
-        // console.log("thumbnailImage: ",thumbnailImage);
-        // if(!thumbnailImage) {
-        //     throw new ApiErrors(500,"Unable to upload thumbnail")
-        // }
+        const thumbnailImage = await uploadOnCloudinary(thumbnail)
+        console.log("thumbnailImage : ",thumbnailImage);
+        if(!thumbnailImage) {
+            throw new ApiErrors(500,"Unable to upload thumbnail")
+        }
         console.log("Id of instructor ",instructorDetails.id);
         const newCourseDetails = await Course.create({
                     courseName,
@@ -55,7 +60,7 @@ const createCourse = asycnHandler(async (req,res) => {
                     instructor: instructorDetails.id,
                     whatYouWillLearn: whatYouWillLearn,
                     price,
-                    // thumbnail: thumbnailImage.secure_url,
+                    thumbnail: thumbnailImage.secure_url,
                     category: categoryDetails._id,
                     tag:tag, // Yaha pe galti ho sakti hai
                     instructions,
@@ -63,7 +68,7 @@ const createCourse = asycnHandler(async (req,res) => {
                 },
             )
         // Add new course to user schema
-        // console.log("New Course Details -> ",newCourseDetails);
+        console.log("New Course Details -> ",newCourseDetails);
         await User.findByIdAndUpdate(
             {_id: instructorDetails._id},
             {

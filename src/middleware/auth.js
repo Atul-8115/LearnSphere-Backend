@@ -8,7 +8,7 @@ const auth = asycnHandler(async (req,_,next) => {
         try {
             const token = req.cookies?.refreshToken 
                           || req.body?.refreshToken
-                          || req.header("Authorisation")?.replace("Bearer ","")
+                          || req.header("Authorization")?.replace("Bearer ","")
             
             console.log("Here I'm checking token -> ",token)
             if(!token) {

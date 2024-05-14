@@ -204,7 +204,7 @@ const changePassword = asycnHandler(async (req,res) => {
 
         const token = req.cookies?.refreshToken 
                           || req.body?.refreshToken
-                          || req.header("Authorisation")?.replace("Bearer ","")
+                          || req.header("Authorization")?.replace("Bearer ","")
 
         const decodedToken = jwt.verify(token,process.env.REFRESH_TOKEN_SECRET)
         const user = await User.findById(decodedToken._id)

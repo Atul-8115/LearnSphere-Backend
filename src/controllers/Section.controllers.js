@@ -8,6 +8,7 @@ import { asycnHandler } from "../utils/asynHandler.js";
 const createSection = asycnHandler(async (req,res) => {
     try {
         const {sectionName,courseId} = req.body
+        console.log("Printing sectionName -> ",sectionName," ",courseId)
         if(!sectionName || !courseId) {
             throw new ApiErrors(400,"All fields are required. ")
         }
@@ -15,13 +16,17 @@ const createSection = asycnHandler(async (req,res) => {
         const newSection = await Section.create({
             sectionName:sectionName
         })
-        const updatedCourseDetails = await Course.findByIdAndUpdate(courseId,
+
+        console.log("Printing section -> ",newSection)
+        const updatedCourseDetails = await Course.findByIdAndUpdate(
+            courseId,
             {
                 $push: {
                     courseContent: newSection._id
                 }
             },
-            {new : true})
+            { new : true }
+        )
             .populate(
                 {
                     path:'courseContent',
@@ -32,9 +37,10 @@ const createSection = asycnHandler(async (req,res) => {
             )
             .exec()
         
+        console.log("Printing course section -> ",updatedCourseDetails)
         return res
                .status(200)
-               .json(new ApiResponse(200,newSection,"Section created successfully."))
+               .json(new ApiResponse(200,updatedCourseDetails,"Section created successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while creating new section please try again. ")

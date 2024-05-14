@@ -4,14 +4,16 @@ import { ApiErrors } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import { asycnHandler } from "../utils/asynHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Course } from "../models/Course.model.js"
 
 
 const createSubSection = asycnHandler(async (req,res) => {
     try {
-        const {title,description,sectionId} = req.body
-        console.log(title," ",description," ",sectionId," ");
-        const video = req.files?.videoFile
-        console.log(video)
+        const {title,description,sectionId, courseId} = req.body
+        // console.log(title," ",description," ",sectionId," ");
+        console.log("Printing req.body -> ",req.body)
+        const video = req?.files?.video
+        console.log("Printing video file -> ",req?.files?.video)
         if(!title || !description || !video || !sectionId) {
             throw new ApiErrors(400,"All fields are required.")
         }
@@ -35,12 +37,19 @@ const createSubSection = asycnHandler(async (req,res) => {
         },
         {new:true})
         .populate('subSection')
-        .exec()
 
+        const updateCourse = await Course.findById(courseId).populate(
+            {
+                path:'courseContent',
+                    populate: {
+                        path:'subSection'
+                }
+            }
+        ).exec();
         console.log(updatedSection);
         return res
                .status(200)
-               .json(new ApiResponse(200,newSubSection,"Created subsection successfully."))
+               .json(new ApiResponse(200,updateCourse,"Created subsection successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while creating sub section. ")

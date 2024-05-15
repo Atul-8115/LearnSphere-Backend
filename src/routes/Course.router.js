@@ -9,7 +9,11 @@ import {
 import { 
     createCourse, 
     getAllCourses, 
-    getCourseDetails 
+    getCourseDetails, 
+    getFullCourseDetails,
+    editCourse,
+    getInstructorCourses,
+    deleteCourse
 } from "../controllers/Course.controllers.js";
 
 import { 
@@ -62,6 +66,16 @@ router.post("/addSubSection", auth, isInstructor, createSubSection)
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
 router.get("/getCourseDetails", getCourseDetails)
+// Get Details for a Specific Courses
+router.post("/getCourseDetails", getCourseDetails)
+// Get Details for a Specific Courses
+router.post("/getFullCourseDetails", auth, getFullCourseDetails)
+// Edit Course routes
+router.post("/editCourse", auth, isInstructor, editCourse)
+// Get all Courses Under a Specific Instructor
+router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
+// Delete a Course
+router.delete("/deleteCourse", deleteCourse)
 
 // ********************************************************************************************************
 //                                      Category routes (Only by Admin)

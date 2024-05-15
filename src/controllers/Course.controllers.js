@@ -32,8 +32,10 @@ const createCourse = asycnHandler(async (req,res) => {
 
         console.log("tag", tag)
         console.log("instructions -> ",instructions)
+
+        console.log(courseName, courseDescription, whatYouWillLearn, price, category, thumbnail)
         
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !tag.length || instructions.length) {
+        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !tag.length || !instructions.length || !thumbnail) {
             throw new ApiErrors(400,"All fiels are required. ")
         }
 
@@ -113,7 +115,7 @@ const createCourse = asycnHandler(async (req,res) => {
     }
 })
 
-const edtiCourse = asycnHandler(async (req,res) => {
+const editCourse = asycnHandler(async (req,res) => {
     try {
         const { courseId } = req.body
         const updates = req.body
@@ -373,7 +375,7 @@ export {
     createCourse,
     getAllCourses,
     getCourseDetails,
-    edtiCourse,
+    editCourse,
     getFullCourseDetails,
     getInstructorCourses,
     deleteCourse

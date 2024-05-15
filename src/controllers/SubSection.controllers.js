@@ -9,11 +9,9 @@ import { Course } from "../models/Course.model.js"
 
 const createSubSection = asycnHandler(async (req,res) => {
     try {
-        const {title,description,sectionId, courseId} = req.body
-        // console.log(title," ",description," ",sectionId," ");
-        console.log("Printing req.body -> ",req.body)
+        const {title,description,sectionId} = req.body
         const video = req?.files?.video
-        console.log("Printing video file -> ",req?.files?.video)
+
         if(!title || !description || !video || !sectionId) {
             throw new ApiErrors(400,"All fields are required.")
         }
@@ -21,8 +19,7 @@ const createSubSection = asycnHandler(async (req,res) => {
         const videoDetails = await uploadOnCloudinary(video)
         const videoSecureUrl = videoDetails.secure_url
         const timeDuration = videoDetails.duration
-        console.log("Printing video details -> ",videoDetails)
-        console.log("Time Duration of video -> ",timeDuration)
+
         const newSubSection = await SubSection.create({
             title: title,
             description:description,
@@ -38,18 +35,9 @@ const createSubSection = asycnHandler(async (req,res) => {
         {new:true})
         .populate('subSection')
 
-        const updateCourse = await Course.findById(courseId).populate(
-            {
-                path:'courseContent',
-                    populate: {
-                        path:'subSection'
-                }
-            }
-        ).exec();
-        console.log(updatedSection);
         return res
                .status(200)
-               .json(new ApiResponse(200,updateCourse,"Created subsection successfully."))
+               .json(new ApiResponse(200,updatedSection,"Created subsection successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while creating sub section. ")
@@ -59,21 +47,35 @@ const createSubSection = asycnHandler(async (req,res) => {
 // TODO: Create Update Subsection
 const updateSubSection = asycnHandler(async (req,res) => {
     try {
-        const {title,description,subSectionId} = req.body
+        const {title,description,subSectionId,sectionId} = req.body
+        const subSection = await SubSection.findById(subSectionId)
 
-        const updatedSubSection = await SubSection.findByIdAndUpdate(
-                                                       {subSectionId},
-                                                       {
-                                                          title,
-                                                          description
-                                                       },
-                                                       {
-                                                          new:true
-                                                       }
-                                                    )
+        if(!subSection) {
+            throw new ApiErrors(404,"SubSection not found")
+        }
+
+        if(title !== undefined) {
+            subSection.title = title
+        }
+        if (description !== undefined) {
+            subSection.description = description
+        }
+        if (req.files && req.files.video !== undefined) {
+            const video = req.files.video
+            const uploadDetails = await uploadImageToCloudinary(
+              video,
+              process.env.FOLDER_NAME
+            )
+            subSection.videoUrl = uploadDetails.secure_url
+            subSection.timeDuration = `${uploadDetails.duration}`
+        }
+      
+        await subSection.save()
+        
+        const updatedSection = await Section.findById(sectionId).populate("subSection")
         return res
                .status(200)
-               .json(new ApiResponse(200,updatedSubSection,"Updated subSection successfully."))
+               .json(new ApiResponse(200,updatedSection,"Updated subSection successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while updating the sub section.")
@@ -83,13 +85,24 @@ const updateSubSection = asycnHandler(async (req,res) => {
 
 const deleteSubSection = asycnHandler(async (req,res) => {
     try {
-        const {subSectionId} = req.body
+        const {subSectionId, sectionId} = req.body
 
-        await SubSection.findByIdAndDelete({subSectionId})
+        await SubSection.findByIdAndUpdate(
+            { _id: sectionId},
+            {
+                $pull: {
+                    subSection: subSectionId
+                }
+            }
+        )
+
+        await SubSection.findByIdAndDelete({_id: subSectionId})
+
+        const updatedSection = await Section.findById(sectionId).populate("subSection")
 
         return res
                .status(200)
-               .json(new ApiErrors(200,"Sub Section deleted successfully."))
+               .json(new ApiResponse(200,updatedSection,"Sub Section deleted successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(200,"Something went wrong while deleting sub section")

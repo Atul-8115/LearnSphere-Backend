@@ -3,6 +3,9 @@ import { ApiErrors } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import { asycnHandler } from "../utils/asynHandler.js";
 import { Course } from "../models/Course.model.js"
+function getRandomInt(max) {
+    return Math.floor(Math.random()*max)
+}
 
 const createCategory = asycnHandler(async (req,res) => {
     try {
@@ -44,8 +47,12 @@ const categoryPageDetails = asycnHandler(async (req,res) => {
     try {
           const {categoryId} = req.body
 
-          const selectedCategory = await Category.findById({categoryId})
-                                                                .populate("courses")
+          const selectedCategory = await Category.findById(categoryId)
+                                                                .populate({
+                                                                    path: "courses",
+                                                                    match: {status: "Published"},
+                                                                    populate: "ratingAndReviews"
+                                                                })
                                                                 .exec();
           if(!selectedCategory) {
               throw new ApiErrors(404,"Courses not found with the given category.")
@@ -55,23 +62,38 @@ const categoryPageDetails = asycnHandler(async (req,res) => {
             throw new ApiErrors(404,"No courses found for the selected category.")
           }
 
-          const selectedCourses = selectedCategory.courses
+        //   const selectedCourses = selectedCategory.courses
 
-         const categoriesExceptSelected = await Category.find({_id: {$ne: categoryId}}).populate("courses");
+         const categoriesExceptSelected = await Category.find({_id: {$ne: categoryId}})
 
-         let differentCourses = []
-         for(const category of categoriesExceptSelected) {
-            differentCourses.push(...category.courses)
-         }
-
-        //  Fetch top 10 most selling courses
-        const allCategory = await Category.find().populate('courses').exec();
-        const allCourses = allCategory.flatMap((category) => category.courses)
-        const mostSellingCourses = allCourses.sort((a,b) => b.sold - a.sold).slice(0,10)
+         let differentCategory = await Category.findOne(
+            categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
+              ._id
+          )
+            .populate({
+              path: "courses",
+              match: { status: "Published" },
+            })
+            .exec()
+            //console.log("Different COURSE", differentCategory)
+          // Get top-selling courses across all categories
+          const allCategories = await Category.find()
+            .populate({
+              path: "courses",
+              match: { status: "Published" },
+              populate: {
+                path: "instructor",
+            },
+            })
+            .exec();
+          const allCourses = allCategories.flatMap((category) => category.courses)
+          const mostSellingCourses = allCourses
+            .sort((a, b) => b.sold - a.sold)
+            .slice(0, 10)
 
          return res
                 .status(200)
-                .json(new ApiResponse(200,selectedCourses,differentCourses,mostSellingCourses,"Desired data fetched successfully."))
+                .json(new ApiResponse(200,{selectedCategory,differentCategory,mostSellingCourses},"Desired data fetched successfully."))
     } catch (error) {
         console.log("ERROR MESSAGE: ",error.message)
         throw new ApiErrors(500,"Something went wrong while fetching data.")

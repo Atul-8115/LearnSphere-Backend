@@ -10,31 +10,14 @@ import crypto from "crypto"
 const resetPasswordToken = asycnHandler(async (req,res) => {
     try {
         const {email} = req.body
-
         const user = await User.findOne({email})
         if(!user) {
             throw new ApiErrors(401,"User is not registered with us, Kindly register.")
         }
-
         const token = crypto.randomUUID()
-
-        const updatedUser = await User.findOneAndUpdate(
-                 {
-                    email
-                 },
-                 {
-                    token: token,
-                    resetPasswordExpires: Date.now() + 5*60*1000
-                 },
-                 {
-                    new: true
-                 }
-            )
-
+        const updatedUser = await User.findOneAndUpdate({email},{ token: token,resetPasswordExpires: Date.now() + 5*60*1000},{new: true})
         const url = `http://localhost:5173/update-password/${token}`
         const mailSent = await mailSender(email,"Password reset link",`Password reset link: ${url}`)
-
-        // console.log("mail Sent ",mailSent);
         return res
                .status(200)
                .json(new ApiResponse(200,"Mail sent successfully, please check mail and change passwrod."))
@@ -43,7 +26,6 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
         throw new ApiErrors(500,"Something went wrong while sending mail.")
     }
 })
-
 const resetPassword = asycnHandler(async (req,res) => {
     try {
         const {password, confirmPassword, token} = req.body

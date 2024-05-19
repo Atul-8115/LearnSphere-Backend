@@ -1,4 +1,4 @@
-exports.courseEnrollmentEmail = (courseName, name) => {
+const courseEnrollmentEmail = (courseName, name) => {
     return `<!DOCTYPE html>
     <html>
     
@@ -85,3 +85,5 @@ exports.courseEnrollmentEmail = (courseName, name) => {
     
     </html>`;
   };
+
+  export { courseEnrollmentEmail}

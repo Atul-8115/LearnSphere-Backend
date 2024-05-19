@@ -7,12 +7,14 @@ import {
 
 import { 
     capturePayment, 
-    verifySignature 
+    verifyPayment,
+    sendPaymentSuccessEmail
 } from "../controllers/Payment.controllers.js"
 
 const router = Router()
 
 router.post("/capturePayment", auth, isStudent, capturePayment)
-router.post("/verifySignature", verifySignature)
+router.post("/verifyPayment",auth,isStudent, verifyPayment)
+router.post("/sendPaymentSuccessEmail",auth,isStudent,sendPaymentSuccessEmail)
 
 export default router

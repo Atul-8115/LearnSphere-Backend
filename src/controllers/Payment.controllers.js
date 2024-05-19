@@ -6,58 +6,52 @@ import { instance } from "../config/razorpay.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import { User } from "../models/User.model.js";
 import { mailSender } from "../utils/mailSender.js";
-
+import crypto from 'crypto'
 
 const capturePayment = asycnHandler(async (req,res) => {
     try {
-        const {courseId} = req.body
+        const {courses} = req.body
         const userId = req.user.id 
 
-        if(!courseId) {
-            throw new ApiErrors(400,"Please please provide valid courseId.")
+        if(!courses) {
+            throw new ApiErrors(400,"Please please provide valid courses.")
         }
 
-        const courseDetails = await Course.findById(courseId)
-        if(!courseDetails) {
-            throw new ApiErrors(400,"Course couldn't found. ")
-        }
+        let totalAmount = 0
 
-        const uid = new mongoose.Schema.Types.ObjectId(userId)
+        for(const course_id of courses) {
+            let course
+            try {
+                
+                course = await Course.findById(course_id)
+                if(!course) {
+                    throw new ApiErrors(400,"Please add courses to cart.")
+                }
 
-        if(courseDetails.studentsEnrolled.includes(uid)) {
-            throw new ApiErrors(400,"User purchased course already.")
-        }
+                const uid = new mongoose.Types.ObjectId(userId)
+                if(course.studentsEnrolled.includes(uid)) {
+                    throw new ApiErrors(401,"Student already enrolled into the course.")
+                }
 
-        const amount = courseDetails.price
-        const currency = "INR"
-
-        const options = {
-            amount: amount*100,
-            currency,
-            receipt: Math.random(Date.now()).toString(),
-            notes: {
-                courseId: courseId,
-                userId
+                totalAmount += course.price
+            } catch (error) {
+                console.log("ERROR MESSAGE: ",error.message)
+                throw new ApiErrors(500,"Something went wrong while amount")
             }
+        }
+
+        const currency = "INR";
+        const options = {
+            amount: totalAmount * 100,
+            currency,
+            receipt: Math.random(Date.now()).toString()
         }
         try {
             const paymentResponse = await instance.orders.create(options)
             console.log(paymentResponse)
-
             return res
                    .status(200)
-                   .json(
-                    new ApiResponse(
-                        200,
-                        courseDetails.courseName,
-                        courseDetails.courseDescription,
-                        courseDetails.thumbnail,
-                        paymentResponse.id,
-                        paymentResponse.currency,
-                        paymentResponse.amount,
-                        "Payment created successfully."
-                    )
-                   )
+                   .json(new ApiResponse(200,paymentResponse,"Payment initiated."))
         } catch (error) {
             console.log("ERROR MESSAGE: ",error.message)
             throw new ApiErrors(500,"Something went wrong while initiating payment.")
@@ -68,74 +62,100 @@ const capturePayment = asycnHandler(async (req,res) => {
     }
 })
 
-const verifySignature = asycnHandler(async (req,res) => {
-    const webhookSecrete = "12345678"
+const verifyPayment = asycnHandler(async (req,res) => {
+    const razorpay_order_id = req.body?.razorpay_order_id;
+    const razorpay_payment_id = req.body?.razorpay_payment_id;
+    const razorpay_signature = req.body?.razorpay_signature;
+    const courses = req.body?.courses;
+    const userId = req.user.id;
 
-    const signature = req.headers["x-razorpay-signature"]
+    if(!razorpay_order_id ||
+        !razorpay_payment_id ||
+        !razorpay_signature || !courses || !userId) {
+            throw new ApiErrors(400,"All fields are required.")
+    }
 
-    const shasum = crypto.createHmac("sha256",webhookSecrete)
-    shasum.update(JSON.stringify(req.body))
-    const digest = shasum.digest()
+    let body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+          .createHmac("sha256",process.env.RAZORPAY_SECRET)
+          .update(body.toString())
+          .digest("hex");
 
-    if(signature === digest) {
-        console.log("Payment is Authorized. ")
+    if(expectedSignature === razorpay_signature) {
+        await enrollStudents(courses, userId, res)
+        return res
+               .status(200)
+               .json(new ApiResponse(200,"Payment verified"))
+    }
+    throw new ApiErrors(500,"Something went wrong while verifying payment.")
+})
 
-        const {userId,courseId} = req.body.payload.payment.entity.notes
+const enrollStudents = async (courses, userId, res) => {
+    if(!courses || !userId) {
+        throw new ApiErrors(400,"Some information is missing.")
+    }
 
+    for(const courseId of courses) {
         try {
-            const enrolledCourse = await Course.findOneAndUpdate(
-                                             {_id:courseId},
-                                             {
-                                                $push: {
-                                                    studentsEnrolled: userId
-                                                }
-                                             },
-                                             {new:true}
+            const enrolledCourse = await Course.findByIdAndUpdate(
+                {_id: courseId},
+                {$push: {studentsEnrolled: userId}},
+                {new:true}
             )
 
             if(!enrolledCourse) {
-                throw new ApiErrors(500,"Course not found.")
+                throw new ApiErrors(403,"Course not found.")
             }
-            console.log(enrolledCourse)
 
-            const enrolledStudent = await User.findOneAndUpdate(
-                                   {_id:userId},
-                                   {
-                                      $push: {
-                                          courses: courseId
-                                      }
-                                   },
-                                   {new:true}
+            const enrolledStudent = await User.findByIdAndUpdate(
+                userId,
+                {
+                    $push:{
+                        courses: courseId,
+                    }
+                },
+                {new:true}
             )
 
-            if(enrolledStudent) {
-                throw new ApiErrors(500,"Student not found.")
-            }
-            console.log(enrolledStudent)
-
-            const emailResponse = mailSender(
-                                  enrolledStudent.email,
-                                  "Congratulation from LearnSphere",
-                                  "Congratulation, you are enrolled into new course from learnshere."
+            const emailResponse = await mailSender(
+                enrolledStudent.email,
+                `Successfully Enrolled into ${enrolledCourse.courseName}`,
+                courseEnrollmentEmail(enrolledCourse.courseName, `${enrolledStudent.firstName}`)
             )
-
-            console.log(emailResponse)
-
-            return res
-                   .status(200)
-                   .json(
-                    new ApiResponse(200,"Signature verified and course added successfully.")
-                   )
         } catch (error) {
             console.log("ERROR MESSAGE: ",error.message)
-            throw new ApiErrors(500,"Something went wrong while authorization process.")
+            throw new ApiErrors(500,"Something went wrong while enrolling the student into course")
         }
-    } else {
-        throw new ApiErrors(400,"Invalid request.")
     }
-})
+}
+
+const sendPaymentSuccessEmail = async(req, res) => {
+    const {orderId, paymentId, amount} = req.body;
+
+    const userId = req.user.id;
+
+    if(!orderId || !paymentId || !amount || !userId) {
+        throw new ApiErrors(400,"Some fields are missing.")
+    }
+
+    try{
+        
+        const enrolledStudent = await User.findById(userId);
+        await mailSender(
+            enrolledStudent.email,
+            `Payment Recieved`,
+             paymentSuccessEmail(`${enrolledStudent.firstName}`,
+             amount/100,orderId, paymentId)
+        )
+    }
+    catch(error) {
+        console.log("ERROR MESSAGE", error)
+        throw new ApiErrors(500,"Something went wrong while sending payment successful mail.")
+    }
+}
 
 export {
     capturePayment,
-    verifySignature,
+    verifyPayment,
+    sendPaymentSuccessEmail
 }

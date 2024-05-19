@@ -199,15 +199,14 @@ const getAllCourses = asycnHandler(async (req,res) => {
 const getCourseDetails = asycnHandler(async (req,res) => {
     try {
         const {courseId} = req.body;
-
+        console.log("Printing courseId -> ",courseId)
         const courseDetails = await Course.find({_id:courseId})
                                            .populate({
                                             path: "instructor",
                                                 populate:{
                                                     path:"additionalDetails",
                                                 }
-                                              }
-                                           )
+                                              })
                                            .populate("category")
                                            .populate("ratingAndReviews")
                                            .populate({
@@ -217,11 +216,12 @@ const getCourseDetails = asycnHandler(async (req,res) => {
                                                 select: "-videoUrl"
                                             }
                                            })
-                                           .exec()
         
         if(!courseDetails) {
             throw new ApiErrors(404,`Could not find course with ${courseId}`)
         }
+
+        console.log("Printing course Details courseContent -> ",courseDetails)
 
         let totalDurationInSeconds = 0
         courseDetails.courseContent.forEach((content) => {

@@ -9,7 +9,7 @@ const courseSchema = new Schema(
             type: String
         },
         instructor: {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             // required: true,
             ref: "User",
         },
@@ -18,13 +18,13 @@ const courseSchema = new Schema(
         },
         courseContent: [
             {
-                type: Schema.Types.ObjectId,
+                type: mongoose.Schema.Types.ObjectId,
                 ref: "Section"
             }
         ],
         ratingAndReviews: [
             {
-                type: Schema.Types.ObjectId,
+                type: mongoose.Schema.Types.ObjectId,
                 ref: "RatingAndReview"
             }
         ],
@@ -35,7 +35,7 @@ const courseSchema = new Schema(
             type: String
         },
         category: {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Category"
         },
         tag:{
@@ -44,7 +44,7 @@ const courseSchema = new Schema(
         },
         studentsEnrolled: [
             {
-                type: Schema.Types.ObjectId,
+                type: mongoose.Schema.Types.ObjectId,
                 ref: "User",
                 required: true
             }

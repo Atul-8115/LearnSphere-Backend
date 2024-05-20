@@ -113,9 +113,42 @@ const updateDisplayPicture = asycnHandler(async (req,res) => {
     }
 })
 
+const getEnrolledCourses = asycnHandler(async (req,res) => {
+    try {
+        const userId = req.user.id
+        console.log("Printing user id -> ",userId)
+        const userDetails = await User.findOne({
+            _id: userId
+        })
+        .populate({
+            path: "courses",
+            populate: {
+                path: "courseContent",
+                populate: {
+                    path: "subSection",
+                    select: "-videoUrl"
+                }
+            }
+        })
+        .exec();
+
+        console.log("Printing userDetails -> ",userDetails)
+        if(!userDetails) {
+            throw new ApiErrors(400,`Could not find user with id: ${userDetails}`)
+        }
+        return res
+               .status(200)
+               .json(new ApiResponse(200,userDetails.courses,"Enrolled courses fetched succefully."))
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while fetching enrolled courses.")
+    }
+})
+
 export {
     updateProfileDetails,
     deleteAccount,
     getAllUserDetails,
-    updateDisplayPicture
+    updateDisplayPicture,
+    getEnrolledCourses
 }

@@ -7,7 +7,8 @@ import { ApiResponse } from "../utils/AppResponse.js";
 import { User } from "../models/User.model.js";
 import { mailSender } from "../utils/mailSender.js";
 import crypto from 'crypto'
-
+import {paymentSuccessEmail} from '../mail/templates/paymentSuccessEmail.js'
+import {courseEnrollmentEmail} from '../mail/templates/courseEnrollmentEmail.js'
 const capturePayment = asycnHandler(async (req,res) => {
     try {
         const {courses} = req.body

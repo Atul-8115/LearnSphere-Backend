@@ -67,7 +67,7 @@ const courseEnrollmentEmail = (courseName, name) => {
     
     <body>
         <div class="container">
-            <a href="/"><img class="logo" src="https://ibb.co/0BtDyb2"
+            <a href="/"><img class="logo" src=""
                     alt="LearnSphere Logo"></a>
             <div class="message">Course Registration Confirmation</div>
             <div class="body">

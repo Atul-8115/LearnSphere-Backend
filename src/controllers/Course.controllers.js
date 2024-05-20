@@ -12,7 +12,8 @@ import { SubSection } from "../models/SubSection.model.js"
 
 const createCourse = asycnHandler(async (req,res) => {
     try {
-        let {courseName, 
+        let {
+            courseName, 
             courseDescription, 
             whatYouWillLearn, 
             price,
@@ -33,7 +34,7 @@ const createCourse = asycnHandler(async (req,res) => {
         console.log("tag", tag)
         console.log("instructions -> ",instructions)
 
-        console.log(courseName, courseDescription, whatYouWillLearn, price, category, thumbnail)
+        // console.log(courseName, courseDescription, whatYouWillLearn, price, category, thumbnail)
         
         if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category || !tag.length || !instructions.length || !thumbnail) {
             throw new ApiErrors(400,"All fiels are required. ")
@@ -69,7 +70,7 @@ const createCourse = asycnHandler(async (req,res) => {
         const newCourseDetails = await Course.create({
                     courseName,
                     courseDescription,
-                    instructor: instructorDetails.id,
+                    instructor: instructorDetails._id,
                     whatYouWillLearn: whatYouWillLearn,
                     price,
                     thumbnail: thumbnailImage.secure_url,
@@ -199,7 +200,7 @@ const getAllCourses = asycnHandler(async (req,res) => {
 const getCourseDetails = asycnHandler(async (req,res) => {
     try {
         const {courseId} = req.body;
-        console.log("Printing courseId -> ",courseId)
+        // console.log("Printing courseId -> ",courseId)
         const courseDetails = await Course.find({_id:courseId})
                                            .populate({
                                             path: "instructor",
@@ -210,28 +211,29 @@ const getCourseDetails = asycnHandler(async (req,res) => {
                                            .populate("category")
                                            .populate("ratingAndReviews")
                                            .populate({
-                                            path: "courseContent",
-                                            populate: {
-                                                path: "subSection",
-                                                select: "-videoUrl"
-                                            }
+                                              path: "courseContent",
+                                              populate: {
+                                                 path: "subSection",
+                                              }
                                            })
+                                           .exec();
         
         if(!courseDetails) {
             throw new ApiErrors(404,`Could not find course with ${courseId}`)
         }
 
-        console.log("Printing course Details courseContent -> ",courseDetails)
+        // console.log("Printing course Details courseContent -> ",courseDetails[0])
 
         let totalDurationInSeconds = 0
-        courseDetails.courseContent.forEach((content) => {
-            content.subSection.forEach((subSection) => {
-                const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        courseDetails[0].courseContent.forEach((content) => {
+            content.subSection.forEach((subSect) => {
+                const timeDurationInSeconds = parseInt(subSect.timeDuration)
                 totalDurationInSeconds += timeDurationInSeconds
             })
         })
 
         const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
+        console.log("Printing time duration -> ",totalDuration)
         return res
                .status(200)
                .json(new ApiResponse(

@@ -3,6 +3,7 @@ import
 { 
     deleteAccount, 
     getAllUserDetails, 
+    getEnrolledCourses, 
     updateDisplayPicture, 
     updateProfileDetails 
 } from "../controllers/ProfileDetails.controllers.js"
@@ -22,7 +23,7 @@ router.put("/updateProfile", auth, updateProfileDetails)
 router.get("/getUserDetails", auth, getAllUserDetails)
 // Get Enrolled Courses
 
-// router.get("/getEnrolledCourses", auth, getEnrolledCourses)
+router.get("/getEnrolledCourses", auth, getEnrolledCourses)
 router.route("/updateDisplayPicture").put(auth, updateDisplayPicture)
 
 export default router

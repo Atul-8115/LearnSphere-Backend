@@ -37,7 +37,7 @@ const createRatingAndReview = asycnHandler(async (req,res) => {
                                     }
                                 }
                             )
-        
+        await courseDetails.save()
         return res
                .status(200)
                .json(new ApiResponse(200,ratingAndReview,"Rating and review created successfully."))
@@ -54,7 +54,7 @@ const getAverageRating = asycnHandler(async (req,res) => {
 
         const result = await RatingAndReview.aggregate({
                                                         $match: {
-                                                            course: new mongoose.Types.ObjectId({courseId})
+                                                            course: new mongoose.Types.ObjectId(courseId)
                                                         }
                                                     },
                                                     {

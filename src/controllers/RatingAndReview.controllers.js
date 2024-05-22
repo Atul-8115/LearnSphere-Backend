@@ -23,21 +23,28 @@ const createRatingAndReview = asycnHandler(async (req,res) => {
             throw new ApiErrors(400,"User already gave rating and review.")
         }
 
-        const ratingAndReview = await RatingAndReview.create(
-                                                            userId,
-                                                            rating,
-                                                            review,
-                                                            courseId
-                                                        )
-        await Course.findByIdAndUpdate(
+        const ratingAndReview = await RatingAndReview.create({
+            user: userId,
+            rating: rating,
+            review: review,
+            course: courseId
+        })
+
+        console.log("Printing rating and review -> ",ratingAndReview)
+        const updatedCourse = await Course.findByIdAndUpdate(
                                 {_id:courseId},
                                 {
                                     $push: {
                                         ratingAndReviews: ratingAndReview._id,
                                     }
-                                }
+                                },
+                                {new: true}
                             )
-        await courseDetails.save()
+        console.log("I'm here after saving it in courseDetails -> ",updatedCourse)
+
+        const updatedCourse2 = await courseDetails.save();
+
+        console.log("Printing updatedCourse2 -> ",updatedCourse2)
         return res
                .status(200)
                .json(new ApiResponse(200,ratingAndReview,"Rating and review created successfully."))

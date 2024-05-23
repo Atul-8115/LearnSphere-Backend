@@ -4,12 +4,14 @@ import
     deleteAccount, 
     getAllUserDetails, 
     getEnrolledCourses, 
+    instructorDashboard, 
     updateDisplayPicture, 
     updateProfileDetails 
 } from "../controllers/ProfileDetails.controllers.js"
 
 import {
-    auth
+    auth,
+    isInstructor
 } from "../middleware/auth.js"
 
 const router = Router()
@@ -25,5 +27,5 @@ router.get("/getUserDetails", auth, getAllUserDetails)
 
 router.get("/getEnrolledCourses", auth, getEnrolledCourses)
 router.route("/updateDisplayPicture").put(auth, updateDisplayPicture)
-
+router.get("/instructorDashboard",auth,isInstructor,instructorDashboard)
 export default router

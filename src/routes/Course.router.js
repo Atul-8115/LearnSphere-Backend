@@ -39,6 +39,7 @@ import {
     getAllRatingAndReviews, 
     getAverageRating 
 } from "../controllers/RatingAndReview.controllers.js";
+import { getProgressPercentage, updateCourseProgress } from "../controllers/CourseProgress.controllers.js";
 
 const router = Router();
 
@@ -76,7 +77,10 @@ router.post("/editCourse", auth, isInstructor, editCourse)
 router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
 // Delete a Course
 router.delete("/deleteCourse", deleteCourse)
-
+// Update course progress
+router.post("/updateCourseProgress",auth,isStudent,updateCourseProgress)
+// Find course progress percentage
+router.post("/courseProgressPercentage",auth,isStudent,getProgressPercentage)
 // ********************************************************************************************************
 //                                      Category routes (Only by Admin)
 // ********************************************************************************************************

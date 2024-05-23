@@ -4,7 +4,7 @@ import { User } from "../models/User.model.js"
 import { Profile } from "../models/Profile.model.js";
 import { ApiResponse } from "../utils/AppResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-
+import { Course } from "../models/Course.model.js"
 
 const updateProfileDetails = asycnHandler(async (req,res) => {
     try {
@@ -145,10 +145,40 @@ const getEnrolledCourses = asycnHandler(async (req,res) => {
     }
 })
 
+const instructorDashboard = asycnHandler(async (req,res) => {
+    try {
+        console.log("Printing id -> ",req.user.id)
+        const courseDetails = await Course.find({instructor: req.user.id})
+
+        console.log("Printing courseDetails -> ",courseDetails)
+        const courseData = courseDetails.map((course) => {
+            const totalStudentsEnrolled = course.studentsEnrolled.length
+            const totalAmountGenerated = totalStudentsEnrolled * course.price
+
+            const courseDataWithStats = {
+                _id: course._id,
+                courseName: course.courseName,
+                courseDescription: course.courseDescription,
+                totalStudentsEnrolled,
+                totalAmountGenerated,
+            }
+            return courseDataWithStats
+        })
+
+        return res
+               .status(200)
+               .json(new ApiResponse(200,courseData,"Instructors details fetched successfully."))
+    } catch (error) {
+        console.log("ERROR MESSAGE: ",error.message)
+        throw new ApiErrors(500,"Something went wrong while fetching instructor's dashboard.")
+    }
+})
+
 export {
     updateProfileDetails,
     deleteAccount,
     getAllUserDetails,
     updateDisplayPicture,
-    getEnrolledCourses
+    getEnrolledCourses,
+    instructorDashboard
 }

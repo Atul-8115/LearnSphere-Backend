@@ -2,6 +2,10 @@ import mongoose, { Schema } from "mongoose";
 
 const courseProgress = new Schema(
     {
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        },
         courseID: {
             type: Schema.Types.ObjectId,
             ref: "Course"

@@ -5,6 +5,8 @@ import { app } from "./app.js"
 dotenv.config({
     path: './.env'
 })
+// isko development ke time use karna hai.
+// "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
 
 connectDB()
 .then(() => {

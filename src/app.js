@@ -43,7 +43,7 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/contact",contactRoutes)
 
-app.get("/api/v1/auth", (req,res) => {
+app.get("/", (req,res) => {
     return res.json({
 		success: true,
 		message: "Your server is up and running ...",

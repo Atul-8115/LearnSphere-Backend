@@ -15,7 +15,7 @@ app.use(cookieParser())
 // Padhna hai iske baare me
 app.use(
     cors({
-        origin: "https://learnsphere-backend.onrender.com",
+        origin: "https://learn-sphere-frontend.vercel.app",
         credentials: true,
     })
 )

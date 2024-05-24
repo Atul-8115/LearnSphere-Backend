@@ -15,7 +15,7 @@ app.use(cookieParser())
 // Padhna hai iske baare me
 app.use(
     cors({
-        origin: "https://learn-sphere-frontend.vercel.app/",
+        origin: "*",
         credentials: true,
     })
 )
@@ -37,13 +37,17 @@ import paymentRoutes from "./routes/Payment.router.js"
 import courseRoutes from "./routes/Course.router.js"
 import contactRoutes from "./routes/Contact.router.js"
 // routes
-app.get("/api/v1/auth", (req,res) => {
-    res.send("Hello World! ")
-})
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/contact",contactRoutes)
+
+app.get("/api/v1/auth", (req,res) => {
+    return res.json({
+		success: true,
+		message: "Your server is up and running ...",
+	});
+})
 
 export { app }

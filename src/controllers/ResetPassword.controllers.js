@@ -16,7 +16,7 @@ const resetPasswordToken = asycnHandler(async (req,res) => {
         }
         const token = crypto.randomUUID()
         const updatedUser = await User.findOneAndUpdate({email},{ token: token,resetPasswordExpires: Date.now() + 5*60*1000},{new: true})
-        const url = `http://localhost:5173/update-password/${token}`
+        const url = `https://learn-sphere-frontend-6mr9.vercel.app/update-password/${token}`
         const mailSent = await mailSender(email,"Password reset link",`Password reset link: ${url}`)
         return res
                .status(200)
